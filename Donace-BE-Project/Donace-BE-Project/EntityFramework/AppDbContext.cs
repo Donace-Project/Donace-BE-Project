@@ -12,7 +12,7 @@ public class AppDbContext : DbContext
         Configuration = configuration;
     }
 
-    public DbSet<User> Users { get; set; } = default!;
+    public DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {

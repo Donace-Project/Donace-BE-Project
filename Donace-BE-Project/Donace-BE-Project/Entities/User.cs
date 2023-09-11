@@ -1,6 +1,8 @@
 ﻿namespace Donace_BE_Project.Entities;
 
-public class User : BaseEntity<Guid>
+public class User : BaseEntity
 {
-    public string UserName { get; set; }
+    public string UserName { get; set; } = string.Empty;
+
+    public string Email { get; set; }
 }
