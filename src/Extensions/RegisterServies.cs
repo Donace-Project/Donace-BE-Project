@@ -20,6 +20,7 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IAuthenticationService, AuthenticationService>();
             return services;
         }
     }
