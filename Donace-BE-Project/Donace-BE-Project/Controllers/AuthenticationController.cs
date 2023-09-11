@@ -8,9 +8,9 @@ namespace Donace_BE_Project.Controllers;
 [ApiController]
 public class AuthenticationController : ControllerBase
 {
-    private readonly IUserService _service;
+    private readonly IAuthenticationService _service;
 
-    public AuthenticationController(IUserService service)
+    public AuthenticationController(IAuthenticationService service)
     {
         _service = service;
     }
@@ -19,11 +19,5 @@ public class AuthenticationController : ControllerBase
     public Task<UserModel> Register(string email)
     {
         return _service.RegisterAsync(email);
-    }
-
-    [HttpGet("profile")]
-    public Task<UserModel> Profile(Guid id)
-    {
-        return _service.GetProfileAsync(id);
     }
 }

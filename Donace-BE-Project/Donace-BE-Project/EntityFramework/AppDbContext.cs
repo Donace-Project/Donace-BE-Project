@@ -1,5 +1,6 @@
 ﻿using Donace_BE_Project.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Donace_BE_Project.EntityFramework;
 
@@ -18,5 +19,7 @@ public class AppDbContext : DbContext
     {
         var connectionString = Configuration.GetConnectionString("sqlServer") ?? throw new ArgumentException(("connectionString"));
         options.UseSqlServer(connectionString);
+
+        options.LogTo(Console.WriteLine);
     }
 }
