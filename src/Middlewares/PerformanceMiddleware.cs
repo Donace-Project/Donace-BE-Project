@@ -21,7 +21,7 @@ namespace Donace_BE_Project.Middlewares
             stopwatch.Restart();
             stopwatch.Start();
             Console.WriteLine($"Start {controllerActionDescriptor?.ControllerTypeInfo.Name}/{actionName} performance recored");
-            await next(context);
+            await next(context ?? throw new ArgumentNullException(nameof(context)));
             Console.WriteLine("End performance recored");
             stopwatch.Stop();
             TimeSpan timeTaken = stopwatch.Elapsed;
