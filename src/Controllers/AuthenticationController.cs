@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 
 using Donace_BE_Project.Interfaces;
-using Donace_BE_Project.Models.User;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,13 +24,39 @@ public class AuthenticationController : ControllerBase
     {
         _service = service;
         _configuration = configuration;
-        _configuration = configuration;
     }
 
     [HttpPost("register")]
-    public Task<UserModel> Register(string email)
+    public async Task<IActionResult> Register(string email)
     {
-        return _service.RegisterAsync(email);
+        if (!string.IsNullOrEmpty(email))
+        {
+            // Create a list of claims (customize this as needed)
+            var claims = new[]
+            {
+                    new Claim(ClaimTypes.Email, email),
+            };
+
+            // Create a JWT token
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"],
+                claims,
+                expires: DateTime.Now.AddMinutes(30), // Token expiration time
+                signingCredentials: creds
+            );
+
+            // Return the JWT token
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                user = await _service.RegisterAsync(email)
+            });
+        }
+
+        return Unauthorized("Authentication failed.");
     }
 
     [HttpGet("check-authentication")]
@@ -59,6 +84,9 @@ public class AuthenticationController : ControllerBase
         return BadRequest("Authentication failed.");
     }
 
+    /// <summary>
+    /// Lấy một token tạm để check-authen.
+    /// </summary>
     [HttpPost("get-token")]
     public IActionResult GetToken()
     {
