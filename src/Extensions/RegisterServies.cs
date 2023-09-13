@@ -13,6 +13,9 @@ namespace Donace_BE_Project.Extensions
     {
         public static IServiceCollection RegisterAppServices(this IServiceCollection services)
         {
+
+            //services.AddSingleton(FirebaseApp.Create());
+
             services.AddDbContext<AppDbContext>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -22,6 +25,7 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IEmailSender, EmailSender>();
 
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IAuthenticationService, AuthenticationService>();

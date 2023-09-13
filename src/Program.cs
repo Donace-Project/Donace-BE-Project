@@ -2,6 +2,10 @@
 
 using Donace_BE_Project.Extensions;
 
+using FirebaseAdmin;
+
+using Google.Apis.Auth.OAuth2;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 using Microsoft.IdentityModel.Tokens;
@@ -35,6 +39,11 @@ builder.Services.AddSwaggerGen(c =>
                 new string[] { }
             }
         });
+});
+
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromFile("donace-firebase.json")
 });
 
 // Service của mình ở đây trong này có dbcontext luôn nhé
