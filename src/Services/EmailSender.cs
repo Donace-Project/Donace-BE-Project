@@ -1,25 +1,52 @@
-﻿using System.Net;
-using System.Net.Mail;
-
-using Donace_BE_Project.Interfaces;
+﻿using Donace_BE_Project.Interfaces;
+using MimeKit;
+using MailKit.Net.Smtp;
 
 namespace Donace_BE_Project.Services
 {
     public class EmailSender : IEmailSender
     {
-        public Task SendEmailAsync(string email, string subject, string htmlMessage)
+        private readonly IConfiguration _configuration;
+        public EmailSender(IConfiguration configuration)
         {
-            SmtpClient client = new SmtpClient
+            _configuration = configuration;
+        }
+        public async Task SendEmailAsync(string email, string subject, string body)
+        {
+            try
             {
-                Port = 587,
-                Host = "smtp.gmail.com",
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential("your email sender", "password")
-            };
+                var userName = _configuration["Smtp:Username"];
+                var server = _configuration["Smtp:Server"];
+                var password = _configuration["Smtp:Password"];
 
-            return client.SendMailAsync("your email sender", email, subject, htmlMessage);
+                var emailMessage = new MimeMessage();
+                emailMessage.From.Add(new MailboxAddress("Donace Ticks", userName));
+
+                emailMessage.To.Add(MailboxAddress.Parse(email));
+                emailMessage.Subject = subject;
+
+                var textPart = new TextPart("plain")
+                {
+                    Text = body
+                };
+
+                var multipart = new Multipart("mixed");
+                multipart.Add(textPart);
+
+                emailMessage.Body = multipart;
+
+                using (var client = new SmtpClient())
+                {
+                    await client.ConnectAsync(server, 587, false);
+                    await client.AuthenticateAsync(userName, password);
+                    await client.SendAsync(emailMessage);
+                    await client.DisconnectAsync(true);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
     }
 }
