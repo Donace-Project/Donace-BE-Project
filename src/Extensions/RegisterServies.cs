@@ -1,9 +1,11 @@
-﻿using Donace_BE_Project.EntityFramework;
+﻿using System.Diagnostics;
+
+using Donace_BE_Project.EntityFramework;
 using Donace_BE_Project.Interfaces;
 using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
+
 using EntityFramework.Repository;
-using System.Diagnostics;
 
 namespace Donace_BE_Project.Extensions
 {
@@ -11,6 +13,8 @@ namespace Donace_BE_Project.Extensions
     {
         public static IServiceCollection RegisterAppServices(this IServiceCollection services)
         {
+            services.AddDbContext<AppDbContext>();
+
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSingleton<PerformanceMiddleware>();
             services.AddSingleton<Stopwatch>();
@@ -21,6 +25,7 @@ namespace Donace_BE_Project.Extensions
 
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IAuthenticationService, AuthenticationService>();
+
             return services;
         }
     }
