@@ -1,6 +1,8 @@
 ﻿using Donace_BE_Project.Interfaces;
-using MimeKit;
+
 using MailKit.Net.Smtp;
+
+using MimeKit;
 
 namespace Donace_BE_Project.Services
 {
@@ -45,8 +47,9 @@ namespace Donace_BE_Project.Services
             }
             catch (Exception ex)
             {
-
+                throw;
             }
+
         }
     }
 }

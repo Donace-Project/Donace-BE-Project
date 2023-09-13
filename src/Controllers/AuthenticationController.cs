@@ -18,7 +18,7 @@ public class AuthenticationController : ControllerBase
 {
     private readonly IAuthenticationService _service;
     private readonly IConfiguration _configuration;
-    //private readonly IEmailSender _emailSender;
+    private readonly IEmailSender _emailSender;
 
     public AuthenticationController(
         IAuthenticationService service,
@@ -28,7 +28,7 @@ public class AuthenticationController : ControllerBase
     {
         _service = service;
         _configuration = configuration;
-        //_emailSender = emailSender;
+        _emailSender = emailSender;
     }
 
     [HttpGet("check-authentication")]
@@ -40,15 +40,9 @@ public class AuthenticationController : ControllerBase
 
         if (claimsIdentity != null)
         {
-            // Extract user's information from claims (customize this as needed)
-            var userId = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-            var username = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // You can return user information or any other response here
             return Ok(new
             {
-                UserId = userId,
-                Username = username,
                 Message = "Authentication successful!"
             });
         }
@@ -144,30 +138,11 @@ public class AuthenticationController : ControllerBase
             // Generate an email verification link
             var emailVerificationLink = await FirebaseAuth.DefaultInstance.GenerateEmailVerificationLinkAsync(user.Email);
 
-
-            // I'm trying :_)))
-            // Send the email verification link via Firebase Cloud Messaging (FCM)
-            //var message = new Message
-            //{
-            //    Token = "1006138912563",
-            //    Notification = new Notification
-            //    {
-            //        Title = "Verify Your Email",
-            //        Body = "Click here to verify your email address.",
-            //    },
-            //    Data = new Dictionary<string, string>
-            //{
-            //    { "emailVerificationLink", emailVerificationLink },
-            //},
-            //};
-
-            //await FirebaseMessaging.DefaultInstance.SendAsync(message);
-
+            await _emailSender.SendEmailAsync(email, "verify your email address", emailVerificationLink);
 
             return Ok(new
             {
                 Message = "User registered successfully. A verification email has been sent.",
-                Link = emailVerificationLink,
                 User = await _service.RegisterAsync(email)
             });
         }
