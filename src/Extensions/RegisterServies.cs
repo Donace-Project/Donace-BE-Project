@@ -22,7 +22,8 @@ namespace Donace_BE_Project.Extensions
             services.AddSingleton<PerformanceMiddleware>();
             services.AddSingleton<Stopwatch>();
 
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEmailSender, EmailSender>();

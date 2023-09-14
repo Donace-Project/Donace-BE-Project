@@ -3,4 +3,6 @@
 public interface IUnitOfWork
 {
     Task SaveChangeAsync();
+    Task RollbackAsync();
+    Task CommitAsync();
 }

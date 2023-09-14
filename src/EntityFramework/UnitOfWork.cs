@@ -10,6 +10,20 @@ public class UnitOfWork : IUnitOfWork
         _context = dbContext;
     }
 
+    public async Task CommitAsync()
+    {
+        using(var transaction = _context.Database.BeginTransaction())
+        {
+            await transaction.CommitAsync();
+        }
+    }
+    public async Task RollbackAsync()
+    {
+        using (var transaction = _context.Database.BeginTransaction())
+        {
+            await transaction.RollbackAsync();
+        }
+    }
     public async Task SaveChangeAsync()
     {
         await _context.SaveChangesAsync();
