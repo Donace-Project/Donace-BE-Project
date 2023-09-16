@@ -6,6 +6,13 @@ using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
 
 using EntityFramework.Repository;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
+using AuthenticationService = Donace_BE_Project.Services.AuthenticationService;
+using IAuthenticationService = Donace_BE_Project.Interfaces.IAuthenticationService;
 
 namespace Donace_BE_Project.Extensions
 {
@@ -29,6 +36,55 @@ namespace Donace_BE_Project.Extensions
 
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IAuthenticationService, AuthenticationService>();
+
+            return services;
+        }
+
+        public static IServiceCollection ConfigureSwagger(this IServiceCollection services)
+        {
+            services.AddSwaggerGen(c =>
+            {
+                // Define security requirements for Swagger (optional)
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme.",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                    },
+                    new string[] { }
+                }
+                        });
+            });
+
+            return services;
+        }
+
+        public static IServiceCollection ConfigureFirebase(this IServiceCollection services)
+        {
+            services.AddSingleton(FirebaseApp.Create(new AppOptions
+            {
+                Credential = GoogleCredential.FromFile("donace-firebase.json")
+            }));
+
+            services.AddFirebaseAuthentication();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFirebaseAuthentication(this IServiceCollection services)
+        {
+            services
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, (o) => { });
+
+            services.AddScoped<FirebaseAuthenticationFunctionHandler>();
 
             return services;
         }
