@@ -1,4 +1,4 @@
-﻿using Donace_BE_Project.Entities;
+﻿using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.EntityFramework;
 
 namespace EntityFramework.Repository

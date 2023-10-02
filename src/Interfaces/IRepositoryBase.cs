@@ -1,4 +1,4 @@
-﻿using Donace_BE_Project.Entities;
+﻿using Donace_BE_Project.Entities.Base;
 
 namespace Donace_BE_Project.Interfaces
 {
