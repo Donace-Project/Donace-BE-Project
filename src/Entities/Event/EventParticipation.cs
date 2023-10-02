@@ -1,9 +1,10 @@
-﻿using Donace_BE_Project.Enums.Entity;
+﻿using Donace_BE_Project.Entities.Base;
+using Donace_BE_Project.Enums.Entity;
 using System.ComponentModel.DataAnnotations;
 
 namespace Donace_BE_Project.Entities.Event;
 
-public class EventParticipation
+public class EventParticipation : BaseEntity
 {
     [Required]
     public Guid UserId { get; set; }
