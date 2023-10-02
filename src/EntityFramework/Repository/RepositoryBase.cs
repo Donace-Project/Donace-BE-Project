@@ -1,4 +1,4 @@
-﻿using Donace_BE_Project.Entities;
+﻿using Donace_BE_Project.Entities.Base;
 using Donace_BE_Project.EntityFramework;
 using Donace_BE_Project.Interfaces;
 using Microsoft.EntityFrameworkCore;
