@@ -96,33 +96,10 @@ public class AuthenticationController : ControllerBase
     {
         var user = FirebaseAuth.DefaultInstance.GetUserByEmailAsync(email).Result;
 
-        if (user != null)
-        {
-            var claims = new[]
-            {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Uid),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-        };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: creds);
-
-            return Ok(new
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token)
-            });
-        }
-
-        return BadRequest("User not found or not authenticated.");
+        return new OkObjectResult(FirebaseAuth.DefaultInstance.CreateCustomTokenAsync(user.Uid).Result);
     }
 
+    // TODO: check user đã tổn tại thì trả mã lỗi. Nếu mà tạo thành công, trả về token luôn
     [HttpPost("register")]
     public async Task<IActionResult> Register(string email, string password, string username)
     {
@@ -136,9 +113,9 @@ public class AuthenticationController : ControllerBase
             });
 
             // Generate an email verification link
-            var emailVerificationLink = await FirebaseAuth.DefaultInstance.GenerateEmailVerificationLinkAsync(user.Email);
+            // var emailVerificationLink = await FirebaseAuth.DefaultInstance.GenerateEmailVerificationLinkAsync(user.Email);
 
-            await _emailSender.SendEmailAsync(email, "verify your email address", emailVerificationLink);
+            // await _emailSender.SendEmailAsync(email, "verify your email address", emailVerificationLink);
 
             return Ok(new
             {
