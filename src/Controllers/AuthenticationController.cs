@@ -1,9 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
-using Donace_BE_Project.Interfaces;
-
+using Donace_BE_Project.Interfaces.Services;
 using FirebaseAdmin.Auth;
 
 using Microsoft.AspNetCore.Authorization;

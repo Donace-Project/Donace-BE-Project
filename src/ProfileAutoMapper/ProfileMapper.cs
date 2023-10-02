@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Donace_BE_Project.Entities;
+using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.Models.User;
 
 namespace Application.ProfileAutoMapper

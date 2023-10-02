@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using Donace_BE_Project.Interfaces;
+using Donace_BE_Project.Interfaces.Repositories;
+using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models.User;
-using EntityFramework.Repository;
 
 namespace Donace_BE_Project.Services;
 

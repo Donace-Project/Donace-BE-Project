@@ -1,4 +1,4 @@
-﻿using Donace_BE_Project.Interfaces;
+﻿using Donace_BE_Project.Interfaces.Services;
 
 namespace Donace_BE_Project.EntityFramework;
 public class UnitOfWork : IUnitOfWork

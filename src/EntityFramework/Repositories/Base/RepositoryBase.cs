@@ -1,11 +1,10 @@
-﻿using Donace_BE_Project.Entities;
-using Donace_BE_Project.EntityFramework;
-using Donace_BE_Project.Interfaces;
+﻿using Donace_BE_Project.Entities.Base;
+using Donace_BE_Project.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace EntityFramework.Repository
+namespace Donace_BE_Project.EntityFramework.Repository.Base
 {
-    public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : BaseEntity
+    public abstract class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : BaseEntity
     {
         protected DbSet<TEntity> _dbSet;
 
@@ -14,17 +13,17 @@ namespace EntityFramework.Repository
             _dbSet = db.Set<TEntity>();
         }
 
-        public async Task<TEntity?> GetByIdAsync(Guid id)
+        public virtual async Task<TEntity?> GetByIdAsync(Guid id)
         {
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task<List<TEntity>> GetAllAsync()
+        public virtual async Task<List<TEntity>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<TEntity> CreateAsync(TEntity entity)
+        public virtual async Task<TEntity> CreateAsync(TEntity entity)
         {
             entity.Id = new Guid();
             entity.CreationTime = DateTime.Now;
@@ -33,15 +32,15 @@ namespace EntityFramework.Repository
             return entity;
         }
 
-        public void Update(TEntity entity)
+        public virtual void Update(TEntity entity)
         {
             entity.LastModificationTime = DateTime.Now;
             _dbSet.Update(entity);
         }
 
-        public void DeleteAsync(TEntity entity, bool softDelete = true) 
+        public virtual void DeleteAsync(TEntity entity, bool softDelete = true)
         {
-            if(softDelete)
+            if (softDelete)
             {
                 entity.IsDeleted = true;
                 entity.LastModificationTime = DateTime.Now;
@@ -51,7 +50,7 @@ namespace EntityFramework.Repository
             _dbSet.Remove(entity);
         }
 
-        public async Task<long> CountAsync()
+        public virtual async Task<long> CountAsync()
         {
             return await _dbSet.CountAsync();
         }
