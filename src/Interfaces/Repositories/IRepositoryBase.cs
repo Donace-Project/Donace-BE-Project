@@ -1,6 +1,6 @@
 ﻿using Donace_BE_Project.Entities.Base;
 
-namespace Donace_BE_Project.Interfaces
+namespace Donace_BE_Project.Interfaces.Repositories
 {
     public interface IRepositoryBase<TEntity> where TEntity : BaseEntity
     {

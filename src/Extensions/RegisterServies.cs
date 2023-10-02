@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
 
 using Donace_BE_Project.EntityFramework;
-using Donace_BE_Project.Interfaces;
+using Donace_BE_Project.EntityFramework.Repository.Base;
+using Donace_BE_Project.Interfaces.Repositories;
+using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
 
@@ -12,7 +14,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using AuthenticationService = Donace_BE_Project.Services.AuthenticationService;
-using IAuthenticationService = Donace_BE_Project.Interfaces.IAuthenticationService;
+using IAuthenticationService = Donace_BE_Project.Interfaces.Services.IAuthenticationService;
 
 namespace Donace_BE_Project.Extensions
 {

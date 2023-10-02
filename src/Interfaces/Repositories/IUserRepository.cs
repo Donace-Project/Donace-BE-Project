@@ -1,7 +1,6 @@
 ﻿using Donace_BE_Project.Entities.User;
-using Donace_BE_Project.Interfaces;
 
-namespace EntityFramework.Repository
+namespace Donace_BE_Project.Interfaces.Repositories
 {
     public interface IUserRepository : IRepositoryBase<User>
     {
