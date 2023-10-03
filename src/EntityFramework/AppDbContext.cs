@@ -51,9 +51,14 @@ public class AppDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         var connectionString = Configuration.GetConnectionString("sqlServer") ?? throw new ArgumentException(("connectionString"));
-        options.UseSqlServer(connectionString);
+        options.UseSqlServer(connectionString, builder =>
+        {
+            builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+        });
 
         // Config log entity framework
         options.LogTo(Console.WriteLine);
+        
+        base.OnConfiguring(options);
     }
 }

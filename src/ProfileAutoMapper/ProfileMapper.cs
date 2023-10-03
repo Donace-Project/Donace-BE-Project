@@ -21,6 +21,11 @@ namespace Application.ProfileAutoMapper
 
             CreateMap<Event, EventFullOutput>();
             CreateMap<Event, EventOutput>();
+
+            #endregion
+
+            #region Section
+            CreateMap<Section, SectionOutput>();
             #endregion
         }
     }
