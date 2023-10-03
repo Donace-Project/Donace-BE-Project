@@ -1,12 +1,14 @@
 ﻿using System.Diagnostics;
 
 using Donace_BE_Project.EntityFramework;
+using Donace_BE_Project.EntityFramework.Repository;
 using Donace_BE_Project.EntityFramework.Repository.Base;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
-
+using Donace_BE_Project.Services.Event;
 using EntityFramework.Repository;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -18,7 +20,7 @@ using IAuthenticationService = Donace_BE_Project.Interfaces.Services.IAuthentica
 
 namespace Donace_BE_Project.Extensions
 {
-    public static class RegisterServies
+    public static class RegisterServices
     {
         public static IServiceCollection RegisterAppServices(this IServiceCollection services)
         {
@@ -35,10 +37,13 @@ namespace Donace_BE_Project.Extensions
 
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IEventRepository, EventRepository>();
+
             services.AddScoped<IEmailSender, EmailSender>();
 
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IAuthenticationService, AuthenticationService>();
+            services.AddTransient<IEventService, EventService>();
 
             return services;
         }

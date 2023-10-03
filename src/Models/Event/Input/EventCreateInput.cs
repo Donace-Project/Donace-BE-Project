@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Donace_BE_Project.Entities.Base;
 
-namespace Donace_BE_Project.Entities.Calendar;
+namespace Donace_BE_Project.Models.Event.Input;
 
-public class Event : BaseEntity
+public class EventCreateInput
 {
     [Required]
     public DateTime StartDate { get; set; }
@@ -37,7 +36,13 @@ public class Event : BaseEntity
 
     public float Duration { get; set; }
 
-    public List<Section> Sections { get; set; } = default!;
+    public List<SectionCreateInput> Sections { get; set; } = new();
 
     public Guid CalendarId { get; set; }
+}
+
+public class SectionCreateInput
+{
+    [Required]
+    public DateTime StarDate { get; set; }
 }

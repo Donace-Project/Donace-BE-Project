@@ -1,14 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Donace_BE_Project.Entities.Base;
+﻿namespace Donace_BE_Project.Models.Event.Output;
 
-namespace Donace_BE_Project.Entities.Calendar;
-
-public class Event : BaseEntity
+public class EventFullOutput
 {
-    [Required]
-    public DateTime StartDate { get; set; }
+    public Guid Id { get; set; }
 
-    [Required]
+    public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 
     public string AddressName { get; set; } = string.Empty;
@@ -37,7 +33,7 @@ public class Event : BaseEntity
 
     public float Duration { get; set; }
 
-    public List<Section> Sections { get; set; } = default!;
+    public ICollection<SectionOutput> Sections { get; set; } = default!;
 
     public Guid CalendarId { get; set; }
 }

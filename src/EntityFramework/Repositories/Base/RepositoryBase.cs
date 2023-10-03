@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Donace_BE_Project.EntityFramework.Repository.Base
 {
-    public abstract class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : BaseEntity
+    public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : BaseEntity
     {
         protected DbSet<TEntity> _dbSet;
 
@@ -27,9 +27,9 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         {
             entity.Id = new Guid();
             entity.CreationTime = DateTime.Now;
-            await _dbSet.AddAsync(entity);
-
-            return entity;
+            var entityEntry = await _dbSet.AddAsync(entity);
+            
+            return entityEntry.Entity;
         }
 
         public virtual void Update(TEntity entity)

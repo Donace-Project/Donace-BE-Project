@@ -9,8 +9,5 @@ public class Section : BaseEntity
     public DateTime StarDate { get; set; }
 
     [Required]
-    public DateTime EndDate { get; set; }
-
-    [Required]
     public Guid EventId { get; set; }
 }
