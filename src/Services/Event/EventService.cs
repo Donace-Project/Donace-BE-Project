@@ -38,15 +38,26 @@ public class EventService : IEventService
         return _mapper.Map<EventEnitity, EventFullOutput>(createdEvent);
     }
 
-    public async Task<PaginationOutput<EventFullOutput>> GetPaginationAsync(PaginationEventInput input)
+    public async Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input)
     {
         var output = await _repoEvent.GetPaginationAsync(input);
 
         return new()
         {
             TotalCount = output.TotalCount,
-            Items = _mapper.Map<List<EventEnitity>, List<EventFullOutput>>(output.Items),
+            Items = _mapper.Map<List<EventEnitity>, List<EventOutput>>(output.Items),
         };
+    }
+
+    public async Task<EventFullOutput> GetDetailById(Guid id)
+    {
+        var output = await _repoEvent.GetDetailById(id);
+        if (output is null)
+        {
+            throw new FriendlyException(string.Empty, $"Không tìm thấy event có id: {id}");
+        }
+
+        return _mapper.Map<EventEnitity, EventFullOutput>(output);
     }
 
     public async Task UpdateAsync(EventUpdateInput input)

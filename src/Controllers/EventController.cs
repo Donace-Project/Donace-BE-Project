@@ -29,8 +29,14 @@ public class EventController : ControllerBase, IEventService
         return _service.CreateAsync(input);
     }
 
+    [HttpGet("detail")]
+    public Task<EventFullOutput> GetDetailById(Guid id)
+    {
+        return _service.GetDetailById(id);
+    }
+
     [HttpGet()]
-    public Task<PaginationOutput<EventFullOutput>> GetPaginationAsync([FromQuery] PaginationEventInput input)
+    public Task<PaginationOutput<EventOutput>> GetPaginationAsync([FromQuery] PaginationEventInput input)
     {
         return _service.GetPaginationAsync(input);
     }

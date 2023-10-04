@@ -7,6 +7,7 @@ public interface IEventService
 {
     Task CancelAsync(Guid id);
     Task<EventFullOutput> CreateAsync(EventCreateInput input);
-    Task<PaginationOutput<EventFullOutput>> GetPaginationAsync(PaginationEventInput input);
+    Task<EventFullOutput> GetDetailById(Guid id);
+    Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input);
     Task UpdateAsync(EventUpdateInput input);
 }
