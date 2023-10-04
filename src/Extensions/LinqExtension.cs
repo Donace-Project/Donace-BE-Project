@@ -15,5 +15,14 @@ namespace EntityFramework.Extensions
 
             return query;
         }
+
+        public static IQueryable<TEntity> GetPagination<TEntity>(
+           this IQueryable<TEntity> query,
+           int pageNumber,
+           int pageSize)
+        {
+            query = query.Skip((pageNumber - 1) * pageSize);
+            return query;
+        }
     }
 }

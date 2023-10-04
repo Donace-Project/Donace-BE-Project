@@ -1,6 +1,9 @@
 ﻿using Donace_BE_Project.Entities.Calendar;
 using Donace_BE_Project.EntityFramework.Repository.Base;
 using Donace_BE_Project.Interfaces.Repositories;
+using Donace_BE_Project.Models.Event.Input;
+using EntityFramework.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Donace_BE_Project.EntityFramework.Repository;
 
@@ -19,5 +22,18 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
             sections[i].CreationTime = DateTime.Now;
         }
         return base.CreateAsync(entity);
+    }
+
+    public async Task<(int TotalCount, List<Event> Items)> GetPaginationAsync(PaginationEventInput input)
+    {
+        var query = _dbSet
+            // TODO: Filter fromDate & toDate 
+            //.Where()
+            .Include(z => z.Sections)
+            .GetPagination(input.PageNumber, input.PageSize);
+
+        var totalCount = await query.CountAsync();
+        var results = await query.ToListAsync();
+        return new(totalCount, results);
     }
 }

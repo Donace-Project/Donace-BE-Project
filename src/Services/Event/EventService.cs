@@ -4,6 +4,7 @@ using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
+using Donace_BE_Project.Shared.Pagination;
 using EventEnitity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
 
@@ -28,5 +29,16 @@ public class EventService : IEventService
         await _unitOfWork.SaveChangeAsync();
 
         return _mapper.Map<EventEnitity, EventFullOutput>(createdEvent);
+    }
+
+    public async Task<PaginationOutput<EventFullOutput>> GetPaginationAsync(PaginationEventInput input)
+    {
+        var output = await _repoEvent.GetPaginationAsync(input);
+
+        return new()
+        {
+            TotalCount = output.TotalCount,
+            Items = _mapper.Map<List<EventEnitity>, List<EventFullOutput>>(output.Items),
+        };
     }
 }
