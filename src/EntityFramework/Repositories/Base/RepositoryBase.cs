@@ -49,6 +49,16 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
             _dbSet.Update(entity);
         }
 
+        public virtual void UpdateRange(List<TEntity> entities)
+        {
+            for (int i = 0; i < entities.Count; i++)
+            {
+                entities[i].LastModificationTime = DateTime.Now;
+            }
+
+            _dbSet.UpdateRange(entities);
+        }
+
         public virtual void DeleteAsync(TEntity entity, bool softDelete = true)
         {
             if (softDelete)

@@ -51,15 +51,30 @@ public class EventService : IEventService
 
     public async Task UpdateAsync(EventUpdateInput input)
     {
-        var foundEvent = await _repoEvent.GetByIdAsync(input.Id);
-        if (foundEvent is null)
-        {
-            throw new FriendlyException(string.Empty, $"Không tìm thấy event có id: {input.Id}");
-        }
+        EventEnitity foundEvent = await FindEventAsync(input.Id);
 
         foundEvent = _mapper.Map(input, foundEvent);
         _repoEvent.Update(foundEvent);
         await _repoSection.OverrideSections(foundEvent.Id, _mapper.Map<List<Section>>(input.Sections));
         await _unitOfWork.SaveChangeAsync();
+    }
+
+    public async Task CancelAsync(Guid id)
+    {
+        var foundEvent = await FindEventAsync(id);
+
+        _repoEvent.CancelAsync(foundEvent);
+        await _repoSection.CancelSections(id);
+        await _unitOfWork.SaveChangeAsync();
+    }
+    private async Task<EventEnitity> FindEventAsync(Guid id)
+    {
+        var foundEvent = await _repoEvent.GetByIdAsync(id);
+        if (foundEvent is null)
+        {
+            throw new FriendlyException(string.Empty, $"Không tìm thấy event có id: {id}");
+        }
+
+        return foundEvent;
     }
 }

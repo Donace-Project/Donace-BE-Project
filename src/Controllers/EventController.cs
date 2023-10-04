@@ -17,6 +17,12 @@ public class EventController : ControllerBase, IEventService
         _service = service;
     }
 
+    [HttpPost("cancel")]
+    public Task CancelAsync(Guid id)
+    {
+        return _service.CancelAsync(id);
+    }
+
     [HttpPost()]
     public Task<EventFullOutput> CreateAsync(EventCreateInput input)
     {
