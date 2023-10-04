@@ -28,8 +28,19 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
             entity.Id = new Guid();
             entity.CreationTime = DateTime.Now;
             var entityEntry = await _dbSet.AddAsync(entity);
-            
+
             return entityEntry.Entity;
+        }
+
+        public virtual async Task CreateRangeAsync(List<TEntity> entities)
+        {
+            for (int i = 0; i < entities.Count; i++)
+            {
+                entities[i].Id = new Guid();
+                entities[i].CreationTime = DateTime.Now;
+            }
+
+            await _dbSet.AddRangeAsync(entities);
         }
 
         public virtual void Update(TEntity entity)

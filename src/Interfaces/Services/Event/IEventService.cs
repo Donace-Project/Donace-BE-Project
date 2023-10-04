@@ -7,4 +7,5 @@ public interface IEventService
 {
     Task<EventFullOutput> CreateAsync(EventCreateInput input);
     Task<PaginationOutput<EventFullOutput>> GetPaginationAsync(PaginationEventInput input);
+    Task UpdateAsync(EventUpdateInput input);
 }

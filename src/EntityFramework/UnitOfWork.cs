@@ -12,17 +12,13 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task CommitAsync()
     {
-        using(var transaction = _context.Database.BeginTransaction())
-        {
-            await transaction.CommitAsync();
-        }
+        using var transaction = _context.Database.BeginTransaction();
+        await transaction.CommitAsync();
     }
     public async Task RollbackAsync()
     {
-        using (var transaction = _context.Database.BeginTransaction())
-        {
-            await transaction.RollbackAsync();
-        }
+        using var transaction = _context.Database.BeginTransaction();
+        await transaction.RollbackAsync();
     }
     public async Task SaveChangeAsync()
     {

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Donace_BE_Project.Entities.Calendar;
 using Donace_BE_Project.Entities.User;
+using Donace_BE_Project.Extensions;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Models.User;
@@ -22,6 +23,8 @@ namespace Application.ProfileAutoMapper
             CreateMap<Event, EventFullOutput>();
             CreateMap<Event, EventOutput>();
 
+            CreateMap<EventUpdateInput, Event>()
+                .Ignore(des => des.Sections);
             #endregion
 
             #region Section

@@ -43,6 +43,8 @@ public class EventCreateInput
 
 public class SectionCreateInput
 {
+    public Guid Id { get; set; }
+
     [Required]
     public DateTime StarDate { get; set; }
 }

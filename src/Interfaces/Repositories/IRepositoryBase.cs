@@ -6,6 +6,7 @@ namespace Donace_BE_Project.Interfaces.Repositories
     {
         Task<long> CountAsync();
         Task<TEntity> CreateAsync(TEntity entity);
+        Task CreateRangeAsync(List<TEntity> entities);
         void DeleteAsync(TEntity entity, bool softDelete = true);
         Task<List<TEntity>> GetAllAsync();
         Task<TEntity?> GetByIdAsync(Guid id);

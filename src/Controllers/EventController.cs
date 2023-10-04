@@ -28,4 +28,10 @@ public class EventController : ControllerBase, IEventService
     {
         return _service.GetPaginationAsync(input);
     }
+
+    [HttpPut()]
+    public Task UpdateAsync(EventUpdateInput input)
+    {
+        return _service.UpdateAsync(input);
+    }
 }

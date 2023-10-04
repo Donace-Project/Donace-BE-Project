@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 
 using Donace_BE_Project.EntityFramework;
+using Donace_BE_Project.EntityFramework.Repositories;
 using Donace_BE_Project.EntityFramework.Repository;
 using Donace_BE_Project.EntityFramework.Repository.Base;
 using Donace_BE_Project.Interfaces.Repositories;
@@ -38,6 +39,7 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<ISectionRepository, SectionRepository>();
 
             services.AddScoped<IEmailSender, EmailSender>();
 
