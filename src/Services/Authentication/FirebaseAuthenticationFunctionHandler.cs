@@ -28,6 +28,7 @@ namespace Donace_BE_Project.Services
                 return AuthenticateResult.NoResult();
             }
 
+            // Test ci/cd
             string bearerToken = context.Request.Headers["Authorization"];
 
             if (bearerToken == null || !bearerToken.StartsWith(BEARER_PREFIX))
