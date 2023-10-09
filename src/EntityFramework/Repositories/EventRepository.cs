@@ -29,6 +29,8 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
         var query = _dbSet
             // TODO: Filter fromDate & toDate 
             //.Where()
+            .Where(z => input.FromDate <= z.StartDate
+                && input.ToDate >= z.EndDate)
             .Where(z => z.IsEnable == true)
             //.Include(z => z.Sections)
             .GetPagination(input.PageNumber, input.PageSize);
