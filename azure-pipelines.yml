@@ -21,18 +21,18 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'restore'
-    projects: '**/Host.csproj'
+    projects: '**/Donace-BE-Project.csproj'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: '**/Host.csproj'
+    projects: '**/Donace-BE-Project.csproj'
 
 
 - task: DotNetCoreCLI@2
   inputs:
     command: publish
-    projects: '**/Host.csproj'
+    projects: '**/Donace-BE-Project.csproj'
     arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
     publishWebProjects: True
     zipAfterPublish: True
