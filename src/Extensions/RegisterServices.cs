@@ -40,12 +40,15 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<ISectionRepository, SectionRepository>();
-
+            services.AddScoped<ICalendarRepository, CalendarRepository>();
+            services.AddScoped<ICalendarParticipationRepository, CalendarParticipationRepository>();
             services.AddScoped<IEmailSender, EmailSender>();
 
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IEventService, EventService>();
+            services.AddTransient<ICalendarService, CalendarService>();
+            services.AddTransient<ICalendarParticipationService, CalendarParticipationService>();
 
             return services;
         }
