@@ -33,5 +33,7 @@ public class EventOutput
 
     public float Duration { get; set; }
 
+    public int TotalGuest { get; set; }
+
     public Guid CalendarId { get; set; }
 }

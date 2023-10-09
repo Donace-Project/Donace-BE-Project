@@ -37,6 +37,8 @@ public class Event : BaseEntity
 
     public float Duration { get; set; }
 
+    public int TotalGuest { get; set; }
+
     public List<Section> Sections { get; set; } = default!;
 
     public Guid CalendarId { get; set; }

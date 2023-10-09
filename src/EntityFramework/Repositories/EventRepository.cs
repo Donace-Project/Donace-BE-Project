@@ -27,12 +27,9 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
     public async Task<(int TotalCount, List<Event> Items)> GetPaginationAsync(PaginationEventInput input)
     {
         var query = _dbSet
-            // TODO: Filter fromDate & toDate 
-            //.Where()
             .Where(z => input.FromDate <= z.StartDate
                 && input.ToDate >= z.EndDate)
             .Where(z => z.IsEnable == true)
-            //.Include(z => z.Sections)
             .GetPagination(input.PageNumber, input.PageSize);
 
         var totalCount = await query.CountAsync();

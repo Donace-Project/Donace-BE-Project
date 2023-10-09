@@ -33,6 +33,8 @@ public class EventFullOutput
 
     public float Duration { get; set; }
 
+    public int TotalGuest { get; set; }
+
     public ICollection<SectionOutput> Sections { get; set; } = default!;
 
     public Guid CalendarId { get; set; }
