@@ -20,7 +20,4 @@ public class CalendarModel
     public string Long { get; set; } = string.Empty;
 
     public string AddressName { get; set; } = string.Empty;
-
-    [Required]
-    public Guid UserId { get; set; }
 }

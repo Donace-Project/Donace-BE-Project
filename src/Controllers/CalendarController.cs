@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Models;
+using Donace_BE_Project.Models.Calendar;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Donace_BE_Project.Controllers;
@@ -6,8 +8,15 @@ namespace Donace_BE_Project.Controllers;
 [ApiController]
 public class CalendarController : ControllerBase
 {
-    public CalendarController()
+    private readonly ICalendarService _iCalendarService;
+    public CalendarController(ICalendarService calendar)
     {
-        
+        _iCalendarService = calendar;
+    }
+
+    [HttpPost("create-calendar")]
+    public async Task<ResponseModel<CalendarModel>> CreateAsync(CalendarModel model)
+    {
+        return await _iCalendarService.CreateAsync(model);
     }
 }

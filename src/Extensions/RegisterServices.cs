@@ -10,6 +10,7 @@ using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
 using Donace_BE_Project.Services.Event;
+using Donace_BE_Project.Services.GetCurrentUser;
 using EntityFramework.Repository;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -29,6 +30,8 @@ namespace Donace_BE_Project.Extensions
             //services.AddSingleton(FirebaseApp.Create());
 
             services.AddDbContext<AppDbContext>();
+            services.AddLogging();
+            services.AddHttpContextAccessor();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSingleton<PerformanceMiddleware>();
@@ -49,6 +52,7 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<IEventService, EventService>();
             services.AddTransient<ICalendarService, CalendarService>();
             services.AddTransient<ICalendarParticipationService, CalendarParticipationService>();
+            services.AddTransient<ICurrentUserService, CurrentUserService>();
 
             return services;
         }
