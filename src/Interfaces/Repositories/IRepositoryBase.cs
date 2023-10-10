@@ -12,6 +12,5 @@ namespace Donace_BE_Project.Interfaces.Repositories
         Task<TEntity?> GetByIdAsync(Guid id);
         void Update(TEntity entity);
         void UpdateRange(List<TEntity> entities);
-        Task<IQueryable<TEntity>> GetQueryableAsync();
     }
 }

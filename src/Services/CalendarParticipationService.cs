@@ -47,9 +47,8 @@ public class CalendarParticipationService : ICalendarParticipationService
     {
         try
         {
-            var calendarParticipation = (await _iCalendarParticipationRepository.GetQueryableAsync()).Where(x => x.UserId == model.UserId &&
-                                                                                                                 x.CalendarId == model.CalendarId)
-                                                                                                     .FirstOrDefault();
+            var calendarParticipation = await _iCalendarParticipationRepository.FindAsync(x => x.UserId == model.UserId &&
+                                                                                               x.CalendarId == model.CalendarId);
 
             if(calendarParticipation != null)
             {

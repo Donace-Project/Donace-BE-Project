@@ -77,10 +77,5 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         {
             return await _dbSet.CountAsync();
         }
-
-        public async Task<IQueryable<TEntity>> GetQueryableAsync()
-        {
-            return await Task.FromResult(_dbSet.AsQueryable());
-        }
     }
 }
