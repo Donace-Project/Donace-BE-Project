@@ -1,4 +1,6 @@
 ﻿using Donace_BE_Project.Entities.Base;
+using Donace_BE_Project.Entities.Calendar;
+using System.Linq.Expressions;
 
 namespace Donace_BE_Project.Interfaces.Repositories
 {
@@ -12,6 +14,6 @@ namespace Donace_BE_Project.Interfaces.Repositories
         Task<TEntity?> GetByIdAsync(Guid id);
         void Update(TEntity entity);
         void UpdateRange(List<TEntity> entities);
-        Task<IQueryable<TEntity>> GetQueryableAsync();
+        Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }

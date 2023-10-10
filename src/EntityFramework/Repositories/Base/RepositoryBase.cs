@@ -1,7 +1,7 @@
 ﻿using Donace_BE_Project.Entities.Base;
-using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Donace_BE_Project.EntityFramework.Repository.Base
 {
@@ -79,9 +79,9 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
             return await _dbSet.CountAsync();
         }
 
-        public async Task<IQueryable<TEntity>> GetQueryableAsync()
+        public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await Task.FromResult(_dbSet.AsQueryable());
+            return await _dbSet.FindAsync(predicate);
         }
     }
 }
