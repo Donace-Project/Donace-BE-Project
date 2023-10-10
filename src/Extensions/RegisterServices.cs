@@ -13,6 +13,7 @@ using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
 using Donace_BE_Project.Services.Event;
 using Donace_BE_Project.Services.GetCurrentUser;
+using Donace_BE_Project.Settings;
 using EntityFramework.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -26,17 +27,16 @@ namespace Donace_BE_Project.Extensions
     {
         public static IServiceCollection RegisterAppServices(this IServiceCollection services)
         {
-
-            //services.AddSingleton(FirebaseApp.Create());
+            services.AddHttpClient();
 
             services.AddDbContext<CalendarDbContext>();
-            services.AddDbContext<AppDbContext>();
             services.AddLogging();
             services.AddHttpContextAccessor();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSingleton<PerformanceMiddleware>();
             services.AddSingleton<Stopwatch>();
+            services.AddSingleton<IUserProvider, UserProvider>();
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
@@ -46,10 +46,11 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<ISectionRepository, SectionRepository>();
             services.AddScoped<ICalendarRepository, CalendarRepository>();
             services.AddScoped<ICalendarParticipationRepository, CalendarParticipationRepository>();
-            services.AddScoped<IEmailSender, EmailSender>();
 
+            services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<AppUserManager, AppUserManager>();
             services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IAuthenticationService, AuthenticationService>();
+            services.AddTransient<IAuthenticationAppService, AuthenticationAppService>();
             services.AddTransient<IEventService, EventService>();
             services.AddTransient<ICalendarService, CalendarService>();
             services.AddTransient<ICalendarParticipationService, CalendarParticipationService>();
@@ -57,6 +58,14 @@ namespace Donace_BE_Project.Extensions
 
             return services;
         }
+
+        public static IServiceCollection RegisterSettings(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<JwtSetting>(configuration.GetSection(nameof(JwtSetting)));
+
+            return services;
+        }
+
 
         public static void ConfigureSwagger(this IServiceCollection services)
         {
@@ -118,9 +127,9 @@ namespace Donace_BE_Project.Extensions
 
         public static void ConfigureJwt(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtConfig = configuration.GetSection("Jwt");
+            var jwtSetting = configuration.GetSection("JwtSetting");
 
-            var secret = jwtConfig["Secret"];
+            var secret = jwtSetting["Secret"];
             services.AddAuthentication(opt =>
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -135,8 +144,8 @@ namespace Donace_BE_Project.Extensions
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
 
-                    ValidIssuer = jwtConfig["Issuer"],
-                    ValidAudience = jwtConfig["Audience"],
+                    ValidIssuer = jwtSetting["Issuer"],
+                    ValidAudience = jwtSetting["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                 };
             });

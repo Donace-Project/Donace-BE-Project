@@ -1,7 +1,6 @@
 ﻿using Donace_BE_Project.Entities.Base;
 using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.Interfaces.Repositories;
-using Donace_BE_Project.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Donace_BE_Project.EntityFramework.Repository.Base
@@ -10,9 +9,8 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
     {
         protected DbSet<TEntity> _dbSet;
 
-        public RepositoryBase(CalendarDbContext db)
         public const string IdModifier = "623e0c1a-93f0-4b1f-a85a-47f632b3ad77";
-        public RepositoryBase(AppDbContext db)
+        public RepositoryBase(CalendarDbContext db)
         {
             _dbSet = db.Set<TEntity>();
         }

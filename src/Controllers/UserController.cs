@@ -1,10 +1,12 @@
 ﻿using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models.User;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Donace_BE_Project.Controllers;
 
 [Route("api/[controller]")]
+[Authorize]
 [ApiController]
 public class UserController : ControllerBase
 {
@@ -16,23 +18,8 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("profile")]
-    public Task<UserModel> Profile(Guid id)
+    public Task<UserModel> Profile()
     {
-        return _service.GetProfileAsync(id);
-    }
-
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(UserDto input)
-    {
-        var result = await _service.RegisterAsync(input);
-
-        return !result.Succeeded ? new BadRequestObjectResult(result.Errors)
-            : StatusCode(201);
-    }
-
-    [HttpPost("login")]
-    public async Task<LoginResponse> LoginAsync(UserDto input)
-    {
-        return await _service.LoginAsync(input);
+        return _service.GetProfileAsync();
     }
 }

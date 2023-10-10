@@ -14,7 +14,7 @@ namespace EntityFramework.Repository
 
         public ValueTask<User?> FindByIdAsync(Guid id)
         {
-            return _dbContext.Users.FindAsync(id);
+            return _dbContext.Users.FindAsync(id.ToString());
         }
     }
 }
