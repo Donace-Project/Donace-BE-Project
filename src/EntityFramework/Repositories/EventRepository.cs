@@ -1,4 +1,5 @@
 ﻿using Donace_BE_Project.Entities.Calendar;
+using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.EntityFramework.Repository.Base;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Models.Event.Input;
@@ -9,7 +10,7 @@ namespace Donace_BE_Project.EntityFramework.Repository;
 
 public class EventRepository : RepositoryBase<Event>, IEventRepository
 {
-    public EventRepository(AppDbContext db) : base(db)
+    public EventRepository(CalendarDbContext db) : base(db)
     {
     }
 

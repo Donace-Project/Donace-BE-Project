@@ -7,22 +7,19 @@ using Donace_BE_Project.Entities.Notification;
 using Donace_BE_Project.Entities.Payment;
 using Donace_BE_Project.Entities.Post;
 using Donace_BE_Project.Entities.Ticket;
-using Donace_BE_Project.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace Donace_BE_Project.EntityFramework;
+namespace Donace_BE_Project.EntityFramework.Db;
 
-public class AppDbContext : DbContext
+public class CalendarDbContext : DbContext
 {
     protected readonly IConfiguration Configuration;
 
-    public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration configuration) : base(options)
+    public CalendarDbContext(DbContextOptions<CalendarDbContext> options, IConfiguration configuration) : base(options)
     {
         Configuration = configuration;
     }
-
-    public DbSet<User> Users { get; set; }
 
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<UserTicket> UserTickets { get; set; }
@@ -52,7 +49,7 @@ public class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        var connectionString = Configuration.GetConnectionString("sqlServer") ?? throw new ArgumentException(("connectionString"));
+        var connectionString = Configuration.GetConnectionString("calendar") ?? throw new ArgumentException("connectionString");
         options.UseSqlServer(connectionString, builder =>
         {
             builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);

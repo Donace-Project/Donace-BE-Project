@@ -1,15 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Donace_BE_Project.Entities.Base;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace Donace_BE_Project.Entities.User;
 
-public class User : BaseEntity
+public class User : IdentityUser
 {
-    [Required]
-    public string UserName { get; set; } = string.Empty;
-
-    public string Email { get; set; } = string.Empty;
-
     public string Avatar { get; set; } = string.Empty;
 
     public string Bio { get; set; } = string.Empty;
@@ -26,5 +20,15 @@ public class User : BaseEntity
 
     public string Website { get; set; } = string.Empty;
 
-    public string Uid { get; set; } = string.Empty;
+    public DateTime CreationTime { get; set; }
+
+    public Guid CreatorId { get; set; }
+
+    public DateTime? LastModificationTime { get; set; }
+
+    public Guid? LastModifierId { get; set; }
+
+    public bool IsDeleted { get; set; } = false;
+
+    public bool IsEnable { get; set; } = true;
 }

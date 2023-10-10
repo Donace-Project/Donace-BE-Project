@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
-
+using System.Text;
+using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.EntityFramework;
+using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.EntityFramework.Repositories;
 using Donace_BE_Project.EntityFramework.Repository;
 using Donace_BE_Project.EntityFramework.Repository.Base;
@@ -11,13 +13,11 @@ using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
 using Donace_BE_Project.Services.Event;
 using EntityFramework.Repository;
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using AuthenticationService = Donace_BE_Project.Services.AuthenticationService;
-using IAuthenticationService = Donace_BE_Project.Interfaces.Services.IAuthenticationService;
 
 namespace Donace_BE_Project.Extensions
 {
@@ -28,7 +28,7 @@ namespace Donace_BE_Project.Extensions
 
             //services.AddSingleton(FirebaseApp.Create());
 
-            services.AddDbContext<AppDbContext>();
+            services.AddDbContext<CalendarDbContext>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSingleton<PerformanceMiddleware>();
@@ -50,53 +50,88 @@ namespace Donace_BE_Project.Extensions
             return services;
         }
 
-        public static IServiceCollection ConfigureSwagger(this IServiceCollection services)
+        public static void ConfigureSwagger(this IServiceCollection services)
         {
             services.AddSwaggerGen(c =>
             {
-                // Define security requirements for Swagger (optional)
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                c.SwaggerDoc("v1", new OpenApiInfo()
                 {
-                    Description = "JWT Authorization header using the Bearer scheme.",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
+                    Title = "Dotnet 6 ASM API",
+                    Version = "v1",
                 });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                            {
+
+                c.ResolveConflictingActions(apiDescription => apiDescription.First());
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
                 {
-                    new OpenApiSecurityScheme
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer token.",
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
                     {
-                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-                    },
-                    new string[] { }
-                }
-                        });
+                        new OpenApiSecurityScheme()
+                        {
+                            Reference = new OpenApiReference()
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer",
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
             });
-
-            return services;
         }
 
-        public static IServiceCollection ConfigureFirebase(this IServiceCollection services)
+        public static void ConfigureIdentity(this IServiceCollection services)
         {
-            services.AddSingleton(FirebaseApp.Create(new AppOptions
+            services.AddIdentity<User, IdentityRole>(setup =>
             {
-                Credential = GoogleCredential.FromFile("donace-firebase.json")
-            }));
-
-            services.AddFirebaseAuthentication();
-
-            return services;
+                setup.Password.RequireDigit = false;
+                setup.Password.RequireLowercase = false;
+                setup.Password.RequireUppercase = false;
+                setup.Password.RequireNonAlphanumeric = false;
+            })
+            .AddEntityFrameworkStores<CustomerDbContext>()
+            .AddDefaultTokenProviders();
         }
 
-        public static IServiceCollection AddFirebaseAuthentication(this IServiceCollection services)
+        public static void ConfigureCustomerSqlContext(this IServiceCollection services, IConfiguration configuration)
         {
-            services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, (o) => { });
+            services.AddDbContext<CustomerDbContext>(option =>
+               option.UseSqlServer(configuration.GetConnectionString("Customer")));
+        }
 
-            services.AddScoped<FirebaseAuthenticationFunctionHandler>();
+        public static void ConfigureJwt(this IServiceCollection services, IConfiguration configuration)
+        {
+            var jwtConfig = configuration.GetSection("Jwt");
 
-            return services;
+            var secret = jwtConfig["Secret"];
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = jwtConfig["Issuer"],
+                    ValidAudience = jwtConfig["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                };
+            });
         }
     }
 }

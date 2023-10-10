@@ -1,11 +1,12 @@
-﻿using Donace_BE_Project.Interfaces.Services;
+﻿using Donace_BE_Project.EntityFramework.Db;
+using Donace_BE_Project.Interfaces.Services;
 
 namespace Donace_BE_Project.EntityFramework;
 public class UnitOfWork : IUnitOfWork
 {
-    private readonly AppDbContext _context;
+    private readonly CalendarDbContext _context;
 
-    public UnitOfWork(AppDbContext dbContext)
+    public UnitOfWork(CalendarDbContext dbContext)
     {
         _context = dbContext;
     }

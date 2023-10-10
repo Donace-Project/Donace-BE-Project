@@ -2,7 +2,8 @@
 
 namespace Donace_BE_Project.Interfaces.Repositories
 {
-    public interface IUserRepository : IRepositoryBase<User>
+    public interface IUserRepository
     {
+        ValueTask<User?> FindByIdAsync(Guid id);
     }
 }

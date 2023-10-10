@@ -20,4 +20,19 @@ public class UserController : ControllerBase
     {
         return _service.GetProfileAsync(id);
     }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(UserDto input)
+    {
+        var result = await _service.RegisterAsync(input);
+
+        return !result.Succeeded ? new BadRequestObjectResult(result.Errors)
+            : StatusCode(201);
+    }
+
+    [HttpPost("login")]
+    public async Task<LoginResponse> LoginAsync(UserDto input)
+    {
+        return await _service.LoginAsync(input);
+    }
 }

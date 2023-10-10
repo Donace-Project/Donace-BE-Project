@@ -1,4 +1,5 @@
 ﻿using Donace_BE_Project.Entities.Base;
+using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
     {
         protected DbSet<TEntity> _dbSet;
 
-        public RepositoryBase(AppDbContext db)
+        public RepositoryBase(CalendarDbContext db)
         {
             _dbSet = db.Set<TEntity>();
         }

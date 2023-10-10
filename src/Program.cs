@@ -10,8 +10,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.ConfigureSwagger();
-builder.Services.ConfigureFirebase();
-
+builder.Services.ConfigureCustomerSqlContext(_configuration);
+builder.Services.ConfigureIdentity();
+builder.Services.ConfigureJwt(_configuration);
 // Service của mình ở đây trong này có dbcontext luôn nhé
 builder.Services.RegisterAppServices();
 

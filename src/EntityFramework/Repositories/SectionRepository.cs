@@ -1,4 +1,5 @@
 ﻿using Donace_BE_Project.Entities.Calendar;
+using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.EntityFramework.Repository.Base;
 using Donace_BE_Project.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +8,8 @@ namespace Donace_BE_Project.EntityFramework.Repositories;
 
 public class SectionRepository : RepositoryBase<Section>, ISectionRepository
 {
-    private readonly AppDbContext _db;
-    public SectionRepository(AppDbContext db) : base(db)
+    private readonly CalendarDbContext _db;
+    public SectionRepository(CalendarDbContext db) : base(db)
     {
         _db = db;
     }
