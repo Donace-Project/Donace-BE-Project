@@ -1,6 +1,7 @@
 ﻿using Donace_BE_Project.Entities.Base;
 using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.Interfaces.Repositories;
+using Donace_BE_Project.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -9,11 +10,12 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
     public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : BaseEntity
     {
         protected DbSet<TEntity> _dbSet;
+        private readonly IUserProvider _userProvider;
 
-        public const string IdModifier = "623e0c1a-93f0-4b1f-a85a-47f632b3ad77";
-        public RepositoryBase(CalendarDbContext db)
+        public RepositoryBase(CalendarDbContext db, IUserProvider userProvider)
         {
             _dbSet = db.Set<TEntity>();
+            _userProvider = userProvider;
         }
 
         public virtual async Task<TEntity?> GetByIdAsync(Guid id)
@@ -28,7 +30,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
 
         public virtual async Task<TEntity> CreateAsync(TEntity entity)
         {
-            entity.CreatorId = Guid.Parse(IdModifier);
+            entity.CreatorId = _userProvider.GetUserId();
             entity.CreationTime = DateTime.Now;
             var entityEntry = await _dbSet.AddAsync(entity);
 
@@ -39,7 +41,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         {
             for (int i = 0; i < entities.Count; i++)
             {
-                entities[i].CreatorId = Guid.Parse(IdModifier);
+                entities[i].CreatorId = _userProvider.GetUserId();
                 entities[i].CreationTime = DateTime.Now;
             }
 
@@ -49,7 +51,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         public virtual void Update(TEntity entity)
         {
             entity.LastModificationTime = DateTime.Now;
-            entity.LastModifierId = Guid.Parse(IdModifier);
+            entity.LastModifierId = _userProvider.GetUserId();
             _dbSet.Update(entity);
         }
 

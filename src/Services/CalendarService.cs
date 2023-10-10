@@ -18,19 +18,19 @@ public class CalendarService : ICalendarService
     private readonly ILogger<CalendarService> _iLogger;
     private readonly IMapper _iMapper;
     private readonly IUnitOfWork _iUnitOfWork;
-    private readonly ICurrentUserService _iCurrentUserService;
+    private readonly IUserProvider _userProvider;
     public CalendarService(ICalendarRepository iCalendarRepository,
                            ILogger<CalendarService> logger,
                            IMapper mapper,
                            IUnitOfWork unitOfWork,
-                           ICurrentUserService iCurrentUserService,
+                           IUserProvider userProvider,
                            ICalendarParticipationService calendarParticipationService)
     {
         _iCalendarRepository = iCalendarRepository;
         _iLogger = logger;
         _iMapper = mapper;
         _iUnitOfWork = unitOfWork;
-        _iCurrentUserService = iCurrentUserService;
+        _userProvider = userProvider;
         _iCalendarParticipationService = calendarParticipationService;
     }
 
@@ -38,11 +38,10 @@ public class CalendarService : ICalendarService
     {
         try
         {
-            var userId = Guid.NewGuid();//TODO;
+            var userId = _userProvider.GetUserId();
             var calendar = _iMapper.Map<Calendar>(model);
-
             calendar.UserId = userId;
-            calendar.CreatorId = userId;
+
 
             var resultCalendar = await _iCalendarRepository.CreateAsync(calendar);
             await _iUnitOfWork.SaveChangeAsync();

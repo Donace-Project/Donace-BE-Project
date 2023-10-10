@@ -2,6 +2,7 @@
 using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.EntityFramework.Repository.Base;
 using Donace_BE_Project.Interfaces.Repositories;
+using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models.Event.Input;
 using EntityFramework.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ namespace Donace_BE_Project.EntityFramework.Repository;
 
 public class EventRepository : RepositoryBase<Event>, IEventRepository
 {
-    public EventRepository(CalendarDbContext db) : base(db)
+    public EventRepository(CalendarDbContext db, IUserProvider userProvider) : base(db, userProvider)
     {
     }
 

@@ -1,9 +1,12 @@
 ﻿using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.Calendar;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Donace_BE_Project.Controllers;
+
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class CalendarController : ControllerBase

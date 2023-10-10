@@ -14,9 +14,14 @@ public class UserProvider : IUserProvider
 
     public Guid GetUserId()
     {
-        var claim = _context.HttpContext.User.Claims
-                   .First(i => i.Type == ClaimTypes.NameIdentifier).Value;
+        var claim = _context?.HttpContext?.User.Claims
+                   .FirstOrDefault(i => i.Type == ClaimTypes.NameIdentifier);
 
-         return new Guid(claim);
+        if (claim is null)
+        {
+            return Guid.Empty;
+        }
+
+        return new Guid(claim.Value);
     }
 }

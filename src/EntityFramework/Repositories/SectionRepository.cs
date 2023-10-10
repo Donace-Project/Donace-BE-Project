@@ -2,6 +2,7 @@
 using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.EntityFramework.Repository.Base;
 using Donace_BE_Project.Interfaces.Repositories;
+using Donace_BE_Project.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Donace_BE_Project.EntityFramework.Repositories;
@@ -9,7 +10,7 @@ namespace Donace_BE_Project.EntityFramework.Repositories;
 public class SectionRepository : RepositoryBase<Section>, ISectionRepository
 {
     private readonly CalendarDbContext _db;
-    public SectionRepository(CalendarDbContext db) : base(db)
+    public SectionRepository(CalendarDbContext db, IUserProvider userProvider) : base(db, userProvider)
     {
         _db = db;
     }
