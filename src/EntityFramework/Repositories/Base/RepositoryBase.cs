@@ -1,7 +1,9 @@
 ﻿using Donace_BE_Project.Entities.Base;
+using Donace_BE_Project.Entities.Calendar;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Donace_BE_Project.EntityFramework.Repository.Base
 {
@@ -76,6 +78,11 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         public virtual async Task<long> CountAsync()
         {
             return await _dbSet.CountAsync();
+        }
+
+        public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.FindAsync(predicate);
         }
     }
 }
