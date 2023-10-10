@@ -25,4 +25,10 @@ public class CalendarController : ControllerBase
     {
         return await _iCalendarService.UpdateAsync(model);
     }
+
+    [HttpDelete("delete-calendar")]
+    public async Task<ResponseModel<CalendarUpdateModel>> DeleteAsync(Guid Id)
+    {
+        return await _iCalendarService.DeleteAsync(Id);
+    }
 }

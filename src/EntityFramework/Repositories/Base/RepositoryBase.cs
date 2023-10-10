@@ -26,7 +26,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
 
         public virtual async Task<TEntity> CreateAsync(TEntity entity)
         {
-            entity.Id = new Guid();
+            entity.CreatorId = Guid.Parse(IdModifier);
             entity.CreationTime = DateTime.Now;
             var entityEntry = await _dbSet.AddAsync(entity);
 
@@ -37,7 +37,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         {
             for (int i = 0; i < entities.Count; i++)
             {
-                entities[i].Id = new Guid();
+                entities[i].CreatorId = Guid.Parse(IdModifier);
                 entities[i].CreationTime = DateTime.Now;
             }
 
@@ -61,7 +61,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
             _dbSet.UpdateRange(entities);
         }
 
-        public virtual void DeleteAsync(TEntity entity, bool softDelete = true)
+        public virtual void Delete(TEntity entity, bool softDelete = true)
         {
             if (softDelete)
             {
@@ -76,6 +76,11 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         public virtual async Task<long> CountAsync()
         {
             return await _dbSet.CountAsync();
+        }
+
+        public async Task<IQueryable<TEntity>> GetQueryableAsync()
+        {
+            return await Task.FromResult(_dbSet.AsQueryable());
         }
     }
 }

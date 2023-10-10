@@ -65,6 +65,30 @@ public class CalendarService : ICalendarService
         }
     }
 
+    public async Task<ResponseModel<CalendarUpdateModel>> DeleteAsync(Guid Id)
+    {
+        try
+        {
+            var calendar = await _iCalendarRepository.GetByIdAsync(Id);
+
+            _iCalendarRepository.Delete(calendar,true);
+            await _iUnitOfWork.SaveChangeAsync();
+
+            var calendarParticipation = await _iCalendarParticipationService.DeleteByCalendarUserIdAsync(new CalendarParticipationGetBycalendarUserIdModel
+            {
+                UserId = calendar.CreatorId,
+                CalendarId = calendar.Id
+            });
+
+            return new ResponseModel<CalendarUpdateModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, new());
+        }
+        catch (Exception ex)
+        {
+            _iLogger.LogError($"CalendarService.Exception: {ex.Message}", $"{Id}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
+        }
+    }
+
     public async Task<ResponseModel<CalendarUpdateModel>> UpdateAsync(CalendarUpdateModel model)
     {
         try

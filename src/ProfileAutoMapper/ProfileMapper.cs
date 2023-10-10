@@ -40,6 +40,7 @@ namespace Application.ProfileAutoMapper
 
             #region CalendarParticipation
             CreateMap<CalendarParticipation, CalendarParticipationModel>().ReverseMap();
+            CreateMap<CalendarParticipation, CalendarParticipationGetByCalendarIdModel>().ReverseMap();
             #endregion
         }
     }

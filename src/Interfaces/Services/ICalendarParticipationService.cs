@@ -7,4 +7,5 @@ namespace Donace_BE_Project.Interfaces.Services;
 public interface ICalendarParticipationService
 {
     Task<ResponseModel<CalendarParticipationModel>> CreateAsync(CalendarParticipationModel model);
+    Task<ResponseModel<CalendarParticipationGetByCalendarIdModel>> DeleteByCalendarUserIdAsync(CalendarParticipationGetBycalendarUserIdModel model);
 }

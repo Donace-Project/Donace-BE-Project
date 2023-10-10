@@ -42,4 +42,29 @@ public class CalendarParticipationService : ICalendarParticipationService
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarParticipationService, ex.Message);
         }
     }
+
+    public async Task<ResponseModel<CalendarParticipationGetByCalendarIdModel>> DeleteByCalendarUserIdAsync(CalendarParticipationGetBycalendarUserIdModel model)
+    {
+        try
+        {
+            var calendarParticipation = (await _iCalendarParticipationRepository.GetQueryableAsync()).Where(x => x.UserId == model.UserId &&
+                                                                                                                 x.CalendarId == model.CalendarId)
+                                                                                                     .FirstOrDefault();
+
+            if(calendarParticipation != null)
+            {
+                _iCalendarParticipationRepository.Delete(calendarParticipation, true);
+                await _iUnitOfWork.SaveChangeAsync();
+                return new ResponseModel<CalendarParticipationGetByCalendarIdModel>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, new());
+            }
+
+            _iLogger.LogWarning($"CalendarParticipationService.Warning: Not Found CalendarParticipation", $"{JsonConvert.SerializeObject(model)}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_CalendarParticipationService, "Not Found CalendarParticipation");
+        }
+        catch(Exception ex)
+        {
+            _iLogger.LogError($"CalendarParticipationService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(model)}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarParticipationService , ex.Message);
+        }
+    }
 }

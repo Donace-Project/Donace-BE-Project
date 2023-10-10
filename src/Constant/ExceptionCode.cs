@@ -11,5 +11,7 @@
         public const string Donace_BE_Project_Bad_Request_CalendarService = "Donace_BE_Project_CalendarService:400";
 
         public const string Donace_BE_Project_Bad_Request_CalendarParticipationService = "Donace_BE_Project_CalendarParticipationService:400";
+
+        public const string Donace_BE_Project_Not_Found_CalendarParticipationService = "Donace_BE_Project_CalendarParticipationService:404";
     }
 }
