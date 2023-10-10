@@ -5,7 +5,7 @@ namespace Donace_BE_Project.Entities.Base;
 public class BaseEntity
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     public DateTime CreationTime { get; set; }
 

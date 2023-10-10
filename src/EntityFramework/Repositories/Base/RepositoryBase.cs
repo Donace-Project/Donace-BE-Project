@@ -1,6 +1,7 @@
 ﻿using Donace_BE_Project.Entities.Base;
 using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.Interfaces.Repositories;
+using Donace_BE_Project.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Donace_BE_Project.EntityFramework.Repository.Base
@@ -10,6 +11,8 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         protected DbSet<TEntity> _dbSet;
 
         public RepositoryBase(CalendarDbContext db)
+        public const string IdModifier = "623e0c1a-93f0-4b1f-a85a-47f632b3ad77";
+        public RepositoryBase(AppDbContext db)
         {
             _dbSet = db.Set<TEntity>();
         }
@@ -26,7 +29,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
 
         public virtual async Task<TEntity> CreateAsync(TEntity entity)
         {
-            entity.Id = new Guid();
+            entity.CreatorId = Guid.Parse(IdModifier);
             entity.CreationTime = DateTime.Now;
             var entityEntry = await _dbSet.AddAsync(entity);
 
@@ -37,7 +40,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         {
             for (int i = 0; i < entities.Count; i++)
             {
-                entities[i].Id = new Guid();
+                entities[i].CreatorId = Guid.Parse(IdModifier);
                 entities[i].CreationTime = DateTime.Now;
             }
 
@@ -47,6 +50,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         public virtual void Update(TEntity entity)
         {
             entity.LastModificationTime = DateTime.Now;
+            entity.LastModifierId = Guid.Parse(IdModifier);
             _dbSet.Update(entity);
         }
 
@@ -60,7 +64,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
             _dbSet.UpdateRange(entities);
         }
 
-        public virtual void DeleteAsync(TEntity entity, bool softDelete = true)
+        public virtual void Delete(TEntity entity, bool softDelete = true)
         {
             if (softDelete)
             {
@@ -75,6 +79,11 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         public virtual async Task<long> CountAsync()
         {
             return await _dbSet.CountAsync();
+        }
+
+        public async Task<IQueryable<TEntity>> GetQueryableAsync()
+        {
+            return await Task.FromResult(_dbSet.AsQueryable());
         }
     }
 }

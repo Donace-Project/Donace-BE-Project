@@ -12,6 +12,7 @@ using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
 using Donace_BE_Project.Services.Event;
+using Donace_BE_Project.Services.GetCurrentUser;
 using EntityFramework.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -29,6 +30,9 @@ namespace Donace_BE_Project.Extensions
             //services.AddSingleton(FirebaseApp.Create());
 
             services.AddDbContext<CalendarDbContext>();
+            services.AddDbContext<AppDbContext>();
+            services.AddLogging();
+            services.AddHttpContextAccessor();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSingleton<PerformanceMiddleware>();
@@ -40,12 +44,16 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<ISectionRepository, SectionRepository>();
-
+            services.AddScoped<ICalendarRepository, CalendarRepository>();
+            services.AddScoped<ICalendarParticipationRepository, CalendarParticipationRepository>();
             services.AddScoped<IEmailSender, EmailSender>();
 
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IEventService, EventService>();
+            services.AddTransient<ICalendarService, CalendarService>();
+            services.AddTransient<ICalendarParticipationService, CalendarParticipationService>();
+            services.AddTransient<ICurrentUserService, CurrentUserService>();
 
             return services;
         }
