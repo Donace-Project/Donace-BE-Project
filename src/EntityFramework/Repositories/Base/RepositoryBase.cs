@@ -1,5 +1,6 @@
 ﻿using Donace_BE_Project.Entities.Base;
 using Donace_BE_Project.Interfaces.Repositories;
+using Donace_BE_Project.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Donace_BE_Project.EntityFramework.Repository.Base
@@ -7,7 +8,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
     public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : BaseEntity
     {
         protected DbSet<TEntity> _dbSet;
-
+        public const string IdModifier = "623e0c1a-93f0-4b1f-a85a-47f632b3ad77";
         public RepositoryBase(AppDbContext db)
         {
             _dbSet = db.Set<TEntity>();
@@ -46,6 +47,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         public virtual void Update(TEntity entity)
         {
             entity.LastModificationTime = DateTime.Now;
+            entity.LastModifierId = Guid.Parse(IdModifier);
             _dbSet.Update(entity);
         }
 

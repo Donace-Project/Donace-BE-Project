@@ -11,5 +11,9 @@
             Result = result;
             Code = code;
         }
+        public ResponseModel()
+        {
+            
+        }
     }
 }

@@ -64,4 +64,22 @@ public class CalendarService : ICalendarService
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
         }
     }
+
+    public async Task<ResponseModel<CalendarUpdateModel>> UpdateAsync(CalendarUpdateModel model)
+    {
+        try
+        {
+            var calendarData = _iMapper.Map<Calendar>(model);
+
+            _iCalendarRepository.Update(calendarData);
+            await _iUnitOfWork.SaveChangeAsync();
+
+            return new ResponseModel<CalendarUpdateModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, model);
+        }
+        catch (Exception ex)
+        {
+            _iLogger.LogError($"CalendarService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(model)}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
+        }
+    }
 }

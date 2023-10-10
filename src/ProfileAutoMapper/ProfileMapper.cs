@@ -35,6 +35,7 @@ namespace Application.ProfileAutoMapper
 
             #region Calendar
             CreateMap<Calendar, CalendarModel>().ReverseMap();
+            CreateMap<Calendar, CalendarUpdateModel>().ReverseMap();
             #endregion
 
             #region CalendarParticipation
