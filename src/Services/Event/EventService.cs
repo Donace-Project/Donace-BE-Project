@@ -14,11 +14,14 @@ public class EventService : IEventService
 {
     private readonly IEventRepository _repoEvent;
     private readonly ISectionRepository _repoSection;
+    private readonly ICalendarRepository _repoCalendar;
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
+                        ICalendarRepository repoCalendar,
                         IUnitOfWork unitOfWork,
                         IMapper mapper)
     {
@@ -26,10 +29,13 @@ public class EventService : IEventService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _repoSection = repoSection;
+        _repoCalendar = repoCalendar;
     }
 
     public async Task<EventFullOutput> CreateAsync(EventCreateInput input)
     {
+        await IsValidCalendar(input.CalendarId);
+
         var eventEntity = _mapper.Map<EventCreateInput, EventEnitity>(input);
 
         var createdEvent = await _repoEvent.CreateAsync(eventEntity);
@@ -62,6 +68,7 @@ public class EventService : IEventService
 
     public async Task UpdateAsync(EventUpdateInput input)
     {
+        await IsValidCalendar(input.CalendarId);
         EventEnitity foundEvent = await FindEventAsync(input.Id);
 
         foundEvent = _mapper.Map(input, foundEvent);
@@ -73,6 +80,10 @@ public class EventService : IEventService
     public async Task CancelAsync(Guid id)
     {
         var foundEvent = await FindEventAsync(id);
+        if(foundEvent.IsEnable == false)
+        {
+            throw new FriendlyException(string.Empty, $"Không tìm thấy event có id: {id}");
+        }
 
         _repoEvent.CancelAsync(foundEvent);
         await _repoSection.CancelSections(id);
@@ -87,5 +98,14 @@ public class EventService : IEventService
         }
 
         return foundEvent;
+    }
+
+    private async Task IsValidCalendar(Guid calendarId)
+    {
+        var calendar = await _repoCalendar.GetByIdAsync(calendarId);
+        if(calendar is null)
+        {
+            throw new FriendlyException(string.Empty, "Không tìm thấy calendar");
+        }
     }
 }

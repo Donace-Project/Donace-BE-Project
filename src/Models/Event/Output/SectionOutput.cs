@@ -5,6 +5,4 @@ public class SectionOutput
     public Guid Id { get; set; }
 
     public DateTime StarDate { get; set; }
-
-    public Guid EventId { get; set; }
 }

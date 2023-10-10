@@ -2,10 +2,12 @@
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Shared.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Donace_BE_Project.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class EventController : ControllerBase, IEventService
