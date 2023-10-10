@@ -12,7 +12,6 @@ using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Middlewares;
 using Donace_BE_Project.Services;
 using Donace_BE_Project.Services.Event;
-using Donace_BE_Project.Services.GetCurrentUser;
 using Donace_BE_Project.Settings;
 using EntityFramework.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -54,7 +53,6 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<IEventService, EventService>();
             services.AddTransient<ICalendarService, CalendarService>();
             services.AddTransient<ICalendarParticipationService, CalendarParticipationService>();
-            services.AddTransient<ICurrentUserService, CurrentUserService>();
 
             return services;
         }
@@ -73,7 +71,7 @@ namespace Donace_BE_Project.Extensions
             {
                 c.SwaggerDoc("v1", new OpenApiInfo()
                 {
-                    Title = "Dotnet 6 ASM API",
+                    Title = "Event_API",
                     Version = "v1",
                 });
 
