@@ -22,6 +22,8 @@ public class Calendar : BaseEntity
 
     public string AddressName { get; set; } = string.Empty;
 
+    public int TotalSubscriber { get; set; }
+
     [Required]
     public Guid UserId { get; set; }
 }

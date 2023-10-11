@@ -1,4 +1,7 @@
-﻿using Donace_BE_Project.Entities.User;
+﻿using Donace_BE_Project.Entities.Authentication;
+using Donace_BE_Project.Entities.Contact;
+using Donace_BE_Project.Entities.Notification;
+using Donace_BE_Project.Entities.User;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,5 +15,10 @@ namespace Donace_BE_Project.EntityFramework.Db
         {
             base.OnModelCreating(modelBuilder);
         }
+
+        public DbSet<VerificationCode> VerificationCodes { get; set; }
+        public DbSet<Contact> Contacts { get; set; }
+        public DbSet<InvitedUser> InvitedUsers { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
     }
 }
