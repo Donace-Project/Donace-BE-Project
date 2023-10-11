@@ -122,7 +122,9 @@ public class CalendarService : ICalendarService
     {
         try
         {
-            var calendarData = _iMapper.Map<Calendar>(model);
+            var calendar = await _iCalendarRepository.GetByIdAsync(model.Id);
+
+            var calendarData = _iMapper.Map(model, calendar);
 
             _iCalendarRepository.Update(calendarData);
             await _iUnitOfWork.SaveChangeAsync();
