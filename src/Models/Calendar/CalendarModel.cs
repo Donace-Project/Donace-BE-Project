@@ -44,3 +44,13 @@ public class CalendarUpdateModel
 
     public string AddressName { get; set; } = string.Empty;
 }
+
+public class GetListCalendarModel
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public int TotalSubcriber {  get; set; }
+    public string Avatar { get; set; }
+    public bool IsAdmin { get; set; }
+    public Guid UserId { get; set; }
+}

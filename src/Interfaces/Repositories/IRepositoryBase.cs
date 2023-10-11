@@ -6,7 +6,7 @@ namespace Donace_BE_Project.Interfaces.Repositories
 {
     public interface IRepositoryBase<TEntity> where TEntity : BaseEntity
     {
-        Task<long> CountAsync();
+        Task<long> CountAsync(Expression<Func<TEntity, bool>> predicate);
         Task<TEntity> CreateAsync(TEntity entity);
         Task CreateRangeAsync(List<TEntity> entities);
         void Delete(TEntity entity, bool softDelete = true);

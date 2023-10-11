@@ -88,6 +88,36 @@ public class CalendarService : ICalendarService
         }
     }
 
+    public async Task<ResponseModel<GetListCalendarModel>> GetListCalendarAsync(RequestBaseModel input)
+    {
+        try
+        {
+            var userId = _userProvider.GetUserId();
+            var litsCalendarId = await _iCalendarParticipationService.GetListIdCalendarByUserIdAsync();
+
+            if (!litsCalendarId.Result.Any())
+            {
+                return new ResponseModel<GetListCalendarModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, new GetListCalendarModel());
+            }
+
+            var listcalendar = await _iCalendarRepository.GetListCalendarByIds(litsCalendarId.Result, input.PageNumber, input.PageSize);
+            var totalCount = await _iCalendarRepository.CountAsync(x => litsCalendarId.Result.Contains(x.Id));
+            var result = _iMapper.Map<List<GetListCalendarModel>>(listcalendar);
+
+            foreach(var item in result)
+            {
+                item.IsAdmin = item.UserId == userId ? true : false;
+            }
+            return new ResponseModel<GetListCalendarModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, result, new(totalCount, input.PageNumber, input.PageSize));
+            
+        }
+        catch (Exception ex) 
+        {
+            _iLogger.LogError($"CalendarService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(input)}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
+        }
+    }
+
     public async Task<ResponseModel<CalendarUpdateModel>> UpdateAsync(CalendarUpdateModel model)
     {
         try

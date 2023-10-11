@@ -34,4 +34,10 @@ public class CalendarController : ControllerBase
     {
         return await _iCalendarService.DeleteAsync(Id);
     }
+
+    [HttpPost("get-list")]
+    public async Task<ResponseModel<GetListCalendarModel>> GetListAsync(RequestBaseModel input)
+    {
+        return await _iCalendarService.GetListCalendarAsync(input);
+    }
 }

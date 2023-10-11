@@ -77,14 +77,14 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
             _dbSet.Remove(entity);
         }
 
-        public virtual async Task<long> CountAsync()
+        public virtual async Task<long> CountAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await _dbSet.CountAsync();
+            return await _dbSet.Where(predicate).CountAsync();
         }
 
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await _dbSet.FindAsync(predicate);
+            return await _dbSet.FirstOrDefaultAsync(predicate);
         }
     }
 }

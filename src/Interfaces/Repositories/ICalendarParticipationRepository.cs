@@ -5,5 +5,5 @@ namespace Donace_BE_Project.Interfaces.Repositories;
 
 public interface ICalendarParticipationRepository : IRepositoryBase<CalendarParticipation>
 {
-    
+    Task<List<Guid>> GetListCalendarIdAsync(Expression<Func<CalendarParticipation, bool>> predicate);
 }

@@ -16,15 +16,18 @@ public class CalendarParticipationService : ICalendarParticipationService
     private readonly ILogger<CalendarParticipationService> _iLogger;
     private readonly IMapper _iMapper;
     private readonly IUnitOfWork _iUnitOfWork;
+    private readonly IUserProvider _iUserProvider;
     public CalendarParticipationService(ICalendarParticipationRepository calendarParticipationRepository,
                                         ILogger<CalendarParticipationService> logger,
                                         IMapper mapper,
-                                        IUnitOfWork unitOfWork)
+                                        IUnitOfWork unitOfWork,
+                                        IUserProvider iUserProvider)
     {
         _iCalendarParticipationRepository = calendarParticipationRepository;
         _iLogger = logger;
         _iMapper = mapper;
         _iUnitOfWork = unitOfWork;
+        _iUserProvider = iUserProvider;
     }
     public async Task<ResponseModel<CalendarParticipationModel>> CreateAsync(CalendarParticipationModel model)
     {
@@ -64,6 +67,23 @@ public class CalendarParticipationService : ICalendarParticipationService
         {
             _iLogger.LogError($"CalendarParticipationService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(model)}");
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarParticipationService , ex.Message);
+        }
+    }
+
+    public async Task<ResponseModel<List<Guid>>> GetListIdCalendarByUserIdAsync()
+    {
+        try
+        {
+            var userId = _iUserProvider.GetUserId();
+            var listId = await _iCalendarParticipationRepository.GetListCalendarIdAsync(x => x.UserId == userId &&
+                                                                                             x.IsDeleted == false);
+
+            return new ResponseModel<List<Guid>>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, listId);
+        }
+        catch(Exception ex)
+        {
+            _iLogger.LogError($"CalendarParticipationService.Exception: {ex.Message}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarParticipationService, ex.Message);
         }
     }
 }
