@@ -16,5 +16,10 @@ namespace EntityFramework.Repository
         {
             return _dbContext.Users.FindAsync(id.ToString());
         }
+
+        public void Update(User user)
+        {
+            _dbContext.Users.Update(user);
+        }
     }
 }
