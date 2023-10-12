@@ -37,7 +37,7 @@ public class CalendarParticipationService : ICalendarParticipationService
 
             await _iCalendarParticipationRepository.CreateAsync(calendarParti);
             await _iUnitOfWork.SaveChangeAsync();
-            return new ResponseModel<CalendarParticipationModel>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, model);
+            return new ResponseModel<CalendarParticipationModel>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, model, new());
         }
         catch(Exception ex)
         {
@@ -57,7 +57,7 @@ public class CalendarParticipationService : ICalendarParticipationService
             {
                 _iCalendarParticipationRepository.Delete(calendarParticipation, true);
                 await _iUnitOfWork.SaveChangeAsync();
-                return new ResponseModel<CalendarParticipationGetByCalendarIdModel>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, new());
+                return new ResponseModel<CalendarParticipationGetByCalendarIdModel>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, new CalendarParticipationGetByCalendarIdModel(), new());
             }
 
             _iLogger.LogWarning($"CalendarParticipationService.Warning: Not Found CalendarParticipation", $"{JsonConvert.SerializeObject(model)}");
@@ -78,11 +78,40 @@ public class CalendarParticipationService : ICalendarParticipationService
             var listId = await _iCalendarParticipationRepository.GetListCalendarIdAsync(x => x.UserId == userId &&
                                                                                              x.IsDeleted == false);
 
-            return new ResponseModel<List<Guid>>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, listId);
+            return new ResponseModel<List<Guid>>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, listId, new());
         }
         catch(Exception ex)
         {
             _iLogger.LogError($"CalendarParticipationService.Exception: {ex.Message}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarParticipationService, ex.Message);
+        }
+    }
+
+    public async Task<ResponseModel<List<Guid>>> GetListUserIdOfCalendarAsync(Guid idCalendar, int pageNumber, int pageSize)
+    {
+        try
+        {
+            var listUserId = await _iCalendarParticipationRepository.GetListUserIdOfCalendarAsync(x => x.CalendarId == idCalendar, pageNumber, pageSize);
+
+            return new ResponseModel<List<Guid>>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, listUserId, new());
+        }
+        catch(Exception ex)
+        {
+            _iLogger.LogError($"CalendarParticipationService.Exception: {ex.Message}", $"Payload: {idCalendar}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarParticipationService, ex.Message);
+        }
+    }
+
+    public async Task<ResponseModel<long>> TotalUserInCalendarAsync(Guid idCalendar)
+    {
+        try
+        {
+            var total = await _iCalendarParticipationRepository.CountAsync(x => x.CalendarId == idCalendar && x.IsDeleted == false);
+            return new ResponseModel<long>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, total, new());
+        }
+        catch(Exception ex)
+        {
+            _iLogger.LogError($"CalendarParticipationService.Exception: {ex.Message}", $"Payload: {idCalendar}");
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarParticipationService, ex.Message);
         }
     }

@@ -18,6 +18,7 @@ namespace Application.ProfileAutoMapper
             #region User
             CreateMap<User, UserModel>().ReverseMap();
             CreateMap<User, UpdateUserModel>().ReverseMap();
+            CreateMap<User, GetListUserInCalendarModel>().ReverseMap();
             #endregion
 
             #region Event

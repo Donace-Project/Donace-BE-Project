@@ -36,8 +36,14 @@ public class CalendarController : ControllerBase
     }
 
     [HttpPost("get-list")]
-    public async Task<ResponseModel<GetListCalendarModel>> GetListAsync(RequestBaseModel input)
+    public async Task<ResponseModel<List<GetListCalendarModel>>> GetListAsync(RequestBaseModel input)
     {
         return await _iCalendarService.GetListCalendarAsync(input);
+    }
+
+    [HttpPost("get-list-user")]
+    public async Task<ResponseModel<List<GetListUserInCalendarModel>>> GetListUserOfCalendarAsync(RequestGetListUserInCalendarModel input)
+    {
+        return await _iCalendarService.GetListUserInCalendarAsync(input);
     }
 }

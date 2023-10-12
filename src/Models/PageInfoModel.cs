@@ -11,5 +11,9 @@
             PageSize = pageSize;
             TotalPage = (int)Math.Ceiling(totalCount/(decimal) pageSize);
         }
+        public PageInfoModel()
+        {
+            
+        }
     }
 }
