@@ -7,7 +7,7 @@ using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Shared.Pagination;
-using EventEnitity = Donace_BE_Project.Entities.Calendar.Event;
+using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
 
 public class EventService : IEventService
@@ -36,12 +36,12 @@ public class EventService : IEventService
     {
         await IsValidCalendar(input.CalendarId);
 
-        var eventEntity = _mapper.Map<EventCreateInput, EventEnitity>(input);
+        var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
 
         var createdEvent = await _repoEvent.CreateAsync(eventEntity);
         await _unitOfWork.SaveChangeAsync();
 
-        return _mapper.Map<EventEnitity, EventFullOutput>(createdEvent);
+        return _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
     }
 
     public async Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input)
@@ -51,7 +51,7 @@ public class EventService : IEventService
         return new()
         {
             TotalCount = output.TotalCount,
-            Items = _mapper.Map<List<EventEnitity>, List<EventOutput>>(output.Items),
+            Items = _mapper.Map<List<EventEntity>, List<EventOutput>>(output.Items),
         };
     }
 
@@ -63,13 +63,13 @@ public class EventService : IEventService
             throw new FriendlyException(string.Empty, $"Không tìm thấy event có id: {id}");
         }
 
-        return _mapper.Map<EventEnitity, EventFullOutput>(output);
+        return _mapper.Map<EventEntity, EventFullOutput>(output);
     }
 
     public async Task UpdateAsync(EventUpdateInput input)
     {
         await IsValidCalendar(input.CalendarId);
-        EventEnitity foundEvent = await FindEventAsync(input.Id);
+        EventEntity foundEvent = await FindEventAsync(input.Id);
 
         foundEvent = _mapper.Map(input, foundEvent);
         _repoEvent.Update(foundEvent);
@@ -89,7 +89,7 @@ public class EventService : IEventService
         await _repoSection.CancelSections(id);
         await _unitOfWork.SaveChangeAsync();
     }
-    private async Task<EventEnitity> FindEventAsync(Guid id)
+    private async Task<EventEntity> FindEventAsync(Guid id)
     {
         var foundEvent = await _repoEvent.GetByIdAsync(id);
         if (foundEvent is null)
