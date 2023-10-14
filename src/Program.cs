@@ -17,6 +17,12 @@ builder.Services.ConfigureJwt(_configuration);
 builder.Services.RegisterAppServices();
 
 var app = builder.Build();
+app.UseCors(builder => builder
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .SetIsOriginAllowed((host) => true)
+         .AllowCredentials()
+     );
 
 app.ConfigureExceptionHandler();
 
@@ -26,12 +32,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors(builder => builder
-    .AllowAnyOrigin()
-    //.AllowAnyMethod()
-    //.AllowAnyHeader()
-    //.AllowCredentials()
-    );
 
 app.UseHttpsRedirection();
 
