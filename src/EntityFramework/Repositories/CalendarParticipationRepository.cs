@@ -20,4 +20,11 @@ public class CalendarParticipationRepository : RepositoryBase<CalendarParticipat
         return await _dbSet.Where(predicate).Select(x => x.CalendarId).ToListAsync();
     }
 
+    public async Task<List<Guid>> GetListUserIdOfCalendarAsync(Expression<Func<CalendarParticipation, bool>> predicate, int pageNumber, int pageSize)
+    {
+        return await _dbSet.Where(predicate).Select(x => x.UserId)
+                                            .Skip((pageNumber - 1) * pageSize)
+                                            .Take(pageSize)
+                                            .ToListAsync();
+    }
 }

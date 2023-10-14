@@ -5,4 +5,5 @@ public interface IUnitOfWork
     Task SaveChangeAsync();
     Task RollbackAsync();
     Task CommitAsync();
+    Task SaveChangeCusAsync();
 }

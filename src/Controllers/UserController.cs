@@ -1,4 +1,5 @@
 ﻿using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,8 +19,14 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("profile")]
-    public Task<UserModel> Profile()
+    public async Task<ResponseModel<UserModel>> ProfileAsync()
     {
-        return _service.GetProfileAsync();
+        return await _service.GetProfileAsync();
+    }
+
+    [HttpPut("update-profile")]
+    public async Task<ResponseModel<UpdateUserModel>> UpdateProfileAsync(UpdateUserModel input)
+    {
+        return await _service.UpdateProfileAsync(input);
     }
 }

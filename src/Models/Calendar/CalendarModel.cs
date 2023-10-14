@@ -54,3 +54,20 @@ public class GetListCalendarModel
     public bool IsAdmin { get; set; }
     public Guid UserId { get; set; }
 }
+
+public class GetListUserInCalendarModel
+{
+    public Guid Id { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string Avatar { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public DateTime CreateDate { get; set; }
+}
+
+public class RequestGetListUserInCalendarModel : RequestBaseModel
+{
+    public Guid Id { get; set;}
+    public string Keyword { get; set; } = string.Empty;
+
+    public bool IsSubcribed { get; set;}
+}
