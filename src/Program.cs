@@ -17,6 +17,12 @@ builder.Services.ConfigureJwt(_configuration);
 builder.Services.RegisterAppServices();
 
 var app = builder.Build();
+app.UseCors(builder => builder
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .SetIsOriginAllowed((host) => true)
+         .AllowCredentials()
+     );
 
 app.ConfigureExceptionHandler();
 
