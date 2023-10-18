@@ -8,4 +8,5 @@ public interface IEventRepository : IRepositoryBase<Event>
     Task<Event?> GetDetailById(Guid id);
     Task<(int TotalCount, List<Event> Items)> GetPaginationAsync(PaginationEventInput input);
     void CancelAsync(Event entity);
+    Task CreateAsync(EventCreateInput eventEntity);
 }

@@ -1,12 +1,18 @@
 ﻿using AutoMapper;
+using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.Calendar;
+using Donace_BE_Project.EntityFramework.Repositories;
+using Donace_BE_Project.EntityFramework;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Interfaces.Services.Event;
+using Donace_BE_Project.Models.CalendarParticipation;
+using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Shared.Pagination;
+using Newtonsoft.Json;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
 
@@ -14,6 +20,7 @@ public class EventService : IEventService
 {
     private readonly IEventRepository _repoEvent;
     private readonly ISectionRepository _repoSection;
+    private readonly ILogger<CalendarParticipationService> _iLogger;
     private readonly ICalendarRepository _repoCalendar;
 
     private readonly IUnitOfWork _unitOfWork;
@@ -22,11 +29,13 @@ public class EventService : IEventService
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
+                         ILogger<CalendarParticipationService> logger,
                         IUnitOfWork unitOfWork,
                         IMapper mapper)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
+        _iLogger = logger;
         _mapper = mapper;
         _repoSection = repoSection;
         _repoCalendar = repoCalendar;
@@ -106,6 +115,22 @@ public class EventService : IEventService
         if(calendar is null)
         {
             throw new FriendlyException(string.Empty, "Không tìm thấy calendar");
+        }
+    }
+    public async Task<ResponseModel<EventCreateInput>> CreateAsyncEvent(EventCreateInput model)
+    {
+        try
+        {
+            var calendarParti = _mapper.Map<EventCreateInput>(model);
+
+            await _repoEvent.CreateAsync(calendarParti);
+            await _unitOfWork.SaveChangeAsync();
+            return new ResponseModel<EventCreateInput>(true, ResponseCode.Donace_BE_Project_Bad_Request_EventService_Success, model, new());
+        }
+        catch (Exception ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(model)}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
         }
     }
 }
