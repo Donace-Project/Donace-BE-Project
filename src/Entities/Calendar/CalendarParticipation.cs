@@ -10,7 +10,4 @@ public class CalendarParticipation : BaseEntity
 
     [Required]
     public Guid CalendarId { get; set; }
-
-    [Required]
-    public bool IsSubcribed {  get; set; }
 }
