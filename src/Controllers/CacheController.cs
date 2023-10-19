@@ -14,10 +14,11 @@ namespace Donace_BE_Project.Controllers
             _iCacheService = cacheService;
         }
 
-        [HttpGet]
-        public async Task GetSuggestLocationAsync(string key)
+        [HttpGet("suggest-location")]
+        public async Task<List<string>> GetSuggestLocationAsync(string key)
         {
-            await _iCacheService.GetDataByKeyAsync<List<string>>(key);
+            var a = (await _iCacheService.GetDataByKeyAsync<List<string>>(key));
+            return a.Result;
         }
     }
 }
