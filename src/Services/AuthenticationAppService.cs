@@ -95,7 +95,8 @@ public class AuthenticationAppService : IAuthenticationAppService
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, _user.Email),
-            new Claim(ClaimTypes.NameIdentifier, _user.Id)
+            new Claim(ClaimTypes.NameIdentifier, _user.Id),
+            new Claim(ClaimTypes.Name, _user.UserName)
         };
         var roles = await _userManager.GetRolesAsync(_user);
         foreach (var role in roles)
