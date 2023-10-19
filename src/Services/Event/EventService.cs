@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.Calendar;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
@@ -15,7 +16,7 @@ public class EventService : IEventService
     private readonly IEventRepository _repoEvent;
     private readonly ISectionRepository _repoSection;
     private readonly ICalendarRepository _repoCalendar;
-
+    private readonly ICacheService _iCacheService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
@@ -23,23 +24,36 @@ public class EventService : IEventService
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
                         IUnitOfWork unitOfWork,
-                        IMapper mapper)
+                        IMapper mapper,
+                        ICacheService cacheService)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _repoSection = repoSection;
         _repoCalendar = repoCalendar;
+        _iCacheService = cacheService;
     }
 
     public async Task<EventFullOutput> CreateAsync(EventCreateInput input)
     {
+        var listStrCache = new List<string>();
         await IsValidCalendar(input.CalendarId);
 
         var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
 
         var createdEvent = await _repoEvent.CreateAsync(eventEntity);
         await _unitOfWork.SaveChangeAsync();
+
+        var dataCache = await _iCacheService.GetDataByKeyAsync<List<string>>(KeyCache.CacheSuggestLocation);
+        var a = dataCache.Result;
+        if (dataCache.Result != null)
+        {
+            listStrCache.AddRange(dataCache.Result);
+        }
+
+        listStrCache.Add(input.AddressName);
+        await _iCacheService.SetDataAsync(KeyCache.CacheSuggestLocation, listStrCache);
 
         return _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
     }

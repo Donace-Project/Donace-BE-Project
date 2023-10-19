@@ -17,20 +17,23 @@ using EntityFramework.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 
 namespace Donace_BE_Project.Extensions
 {
     public static class RegisterServices
     {
-        public static IServiceCollection RegisterAppServices(this IServiceCollection services)
+        public static IServiceCollection RegisterAppServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHttpClient();
 
             services.AddDbContext<CalendarDbContext>();
             services.AddLogging();
             services.AddHttpContextAccessor();
+            services.AddRedis(configuration);
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSingleton<PerformanceMiddleware>();
@@ -53,10 +56,24 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<IEventService, EventService>();
             services.AddTransient<ICalendarService, CalendarService>();
             services.AddTransient<ICalendarParticipationService, CalendarParticipationService>();
+            services.AddTransient<ICacheService, CacheService>();
 
             return services;
         }
 
+        private static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
+        {
+            var redisConfiguration = configuration.GetSection("Redis").GetValue<string>("Host");
+            var redisInstanceName = configuration.GetSection("Redis").GetValue<string>("Port");
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConfiguration;
+                options.InstanceName = redisInstanceName;
+            });
+
+            return services;
+        }
         public static IServiceCollection RegisterSettings(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<JwtSetting>(configuration.GetSection(nameof(JwtSetting)));

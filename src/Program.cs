@@ -14,7 +14,7 @@ builder.Services.RegisterSettings(_configuration);
 builder.Services.ConfigureCustomerSqlContext(_configuration);
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJwt(_configuration);
-builder.Services.RegisterAppServices();
+builder.Services.RegisterAppServices(_configuration);
 
 var app = builder.Build();
 app.UseCors(builder => builder

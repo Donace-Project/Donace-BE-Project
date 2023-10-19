@@ -18,5 +18,9 @@
 
         public const string Donace_BE_Project_Bad_Request_UserService = "Donace_BE_Project_UserService:400";
 
+        public const string Donace_BE_Project_Bad_Request_CacheService = "Donace_BE_Project_CacheService:400";
+
+        public const string Donace_BE_Project_Not_Found_CacheService = "Donace_BE_Project_CacheService:404";
+
     }
 }
