@@ -27,7 +27,7 @@ namespace Donace_BE_Project.Services
             try
             {
                 
-                var data = await _iDistributeCache.GetStringAsync($"{key}_{_iUserProvider.GetUserId()}");
+                var data = await _iDistributeCache.GetStringAsync($"{key}:{_iUserProvider.GetUserId()}");
                 if(string.IsNullOrEmpty(data))
                 {
                     return new ResponseModel<T>(true, "200");
@@ -38,7 +38,7 @@ namespace Donace_BE_Project.Services
             }
             catch (Exception ex)
             {
-                _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{key}_{_iUserProvider.GetUserId()}");
+                _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{key}:{_iUserProvider.GetUserId()}");
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CacheService, $"{JsonConvert.SerializeObject(new { key })}");
             }
         }
@@ -47,12 +47,12 @@ namespace Donace_BE_Project.Services
         {
             try
             {
-                await _iDistributeCache.RemoveAsync($"{key}_{_iUserProvider.GetUserId()}");
+                await _iDistributeCache.RemoveAsync($"{key}:{_iUserProvider.GetUserId()}");
                 return true;
             }
             catch(Exception ex)
             {
-                _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{key}_{_iUserProvider.GetUserId()}");
+                _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{key}:{_iUserProvider.GetUserId()}");
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CacheService, $"{JsonConvert.SerializeObject(new { key })}");
             }
         }
@@ -61,14 +61,14 @@ namespace Donace_BE_Project.Services
         {
             try
             {
-                key = $"{key}_{_iUserProvider.GetUserId()}";
+                key = $"{key}:{_iUserProvider.GetUserId()}";
                 var strData = JsonConvert.SerializeObject(value);
                 await _iDistributeCache.SetStringAsync(key, strData);
                 return new ResponseModel<T>(true, "200", value);
             }
             catch(Exception ex )
             {
-                _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{key}_{_iUserProvider.GetUserId()}");
+                _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{key}:{_iUserProvider.GetUserId()}");
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CacheService, $"{JsonConvert.SerializeObject(new { key })}");
             }
         }
