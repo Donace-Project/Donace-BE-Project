@@ -36,4 +36,12 @@ public class EventOutput
     public int TotalGuest { get; set; }
 
     public Guid CalendarId { get; set; }
+
+    public bool IsLive
+    {
+        get
+        {
+            return StartDate >= DateTime.Now && DateTime.Now <= EndDate;
+        }
+    }
 }
