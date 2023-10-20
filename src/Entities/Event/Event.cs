@@ -42,4 +42,6 @@ public class Event : BaseEntity
     public List<Section> Sections { get; set; } = default!;
 
     public Guid CalendarId { get; set; }
+
+    public bool? IsLive { get; set; }
 }

@@ -22,5 +22,9 @@
 
         public const string Donace_BE_Project_Not_Found_CacheService = "Donace_BE_Project_CacheService:404";
 
+        public const string Donace_BE_Project_Not_Found_EventService = "Donace_BE_Project_EventService:404";
+
+        public const string Donace_BE_Project_Bad_Request_EventService = "Donace_BE_Project_EventService:400";
+
     }
 }

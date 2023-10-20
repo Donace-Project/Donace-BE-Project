@@ -8,6 +8,8 @@ using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Shared.Pagination;
+using Hangfire;
+using Newtonsoft.Json;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
 
@@ -19,13 +21,14 @@ public class EventService : IEventService
     private readonly ICacheService _iCacheService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-
+    private readonly IBackgroundJobClient _iBackgroundJobClient;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
                         IUnitOfWork unitOfWork,
                         IMapper mapper,
-                        ICacheService cacheService)
+                        ICacheService cacheService,
+                        IBackgroundJobClient backgroundJobClient)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -33,27 +36,34 @@ public class EventService : IEventService
         _repoSection = repoSection;
         _repoCalendar = repoCalendar;
         _iCacheService = cacheService;
+        _iBackgroundJobClient = backgroundJobClient;
     }
 
     public async Task<EventFullOutput> CreateAsync(EventCreateInput input)
     {
+        
         var listStrCache = new List<string>();
         await IsValidCalendar(input.CalendarId);
 
         var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
 
+        var timeRunJobLiveTrue = input.StartDate.Ticks - DateTime.Now.Ticks;
+        var timeRunJobLiveFalse = input.EndDate.Ticks - DateTime.Now.Ticks;
+
         var createdEvent = await _repoEvent.CreateAsync(eventEntity);
         await _unitOfWork.SaveChangeAsync();
 
         var dataCache = await _iCacheService.GetDataByKeyAsync<List<string>>(KeyCache.CacheSuggestLocation);
-        var a = dataCache.Result;
         if (dataCache.Result != null)
         {
             listStrCache.AddRange(dataCache.Result);
         }
-
+        
         listStrCache.Add(input.AddressName);
         await _iCacheService.SetDataAsync(KeyCache.CacheSuggestLocation, listStrCache);
+
+        _iBackgroundJobClient.Schedule(() => UpdateIsLiveEventAsync(createdEvent.Id, true), TimeSpan.FromTicks(timeRunJobLiveTrue));
+        _iBackgroundJobClient.Schedule(() => UpdateIsLiveEventAsync(createdEvent.Id, false), TimeSpan.FromTicks(timeRunJobLiveFalse));
 
         return _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
     }
@@ -120,6 +130,26 @@ public class EventService : IEventService
         if(calendar is null)
         {
             throw new FriendlyException(string.Empty, "Không tìm thấy calendar");
+        }
+    }
+
+    private async Task UpdateIsLiveEventAsync(Guid id, bool isLive)
+    {
+        try
+        {
+            var eventData = await _repoEvent.GetByIdAsync(id);
+
+            if(eventData is null)
+            {
+                return;
+            }
+            eventData.IsLive = isLive;
+            _repoEvent.Update(eventData);
+        }
+        catch(Exception ex)
+        {
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, 
+                                        $"{JsonConvert.SerializeObject(new { id, isLive })}");
         }
     }
 }
