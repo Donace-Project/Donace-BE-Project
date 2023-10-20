@@ -14,6 +14,7 @@ using Donace_BE_Project.Services;
 using Donace_BE_Project.Services.Event;
 using Donace_BE_Project.Settings;
 using EntityFramework.Repository;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +35,11 @@ namespace Donace_BE_Project.Extensions
             services.AddLogging();
             services.AddHttpContextAccessor();
             services.AddRedis(configuration);
+            services.AddHangfire(x =>
+            {
+                x.UseSqlServerStorage(configuration.GetConnectionString("hangfire"));
+            });
+            services.AddHangfireServer();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSingleton<PerformanceMiddleware>();

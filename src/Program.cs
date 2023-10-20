@@ -1,4 +1,5 @@
 ﻿using Donace_BE_Project.Extensions;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Doashboard management queue Hangfire
+app.UseHangfireDashboard();
 
 app.UseHttpsRedirection();
 
