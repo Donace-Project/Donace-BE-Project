@@ -78,6 +78,19 @@ namespace Donace_BE_Project.Extensions
                 options.InstanceName = redisInstanceName;
             });
 
+            services.AddSingleton<IConnectionMultiplexer, ConnectionMultiplexer>(c =>
+            {
+                try
+                {
+                    var Configuration = ConfigurationOptions.Parse($"{redisConfiguration}:{redisInstanceName}", true);
+                    return ConnectionMultiplexer.Connect(Configuration);
+                }
+                catch
+                {
+                    return null;
+                }
+            });
+
             return services;
         }
         public static IServiceCollection RegisterSettings(this IServiceCollection services, IConfiguration configuration)

@@ -39,3 +39,8 @@ public class EventFullOutput
 
     public Guid CalendarId { get; set; }
 }
+
+public class EventsModelResponse
+{
+
+}

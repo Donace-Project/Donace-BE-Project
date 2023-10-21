@@ -5,6 +5,7 @@ using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Interfaces.Services.Event;
+using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Shared.Pagination;
@@ -22,13 +23,15 @@ public class EventService : IEventService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IBackgroundJobClient _iBackgroundJobClient;
+    private readonly ILogger<EventService> _iLogger;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
                         IUnitOfWork unitOfWork,
                         IMapper mapper,
                         ICacheService cacheService,
-                        IBackgroundJobClient backgroundJobClient)
+                        IBackgroundJobClient backgroundJobClient,
+                        ILogger<EventService> logger)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -37,35 +40,42 @@ public class EventService : IEventService
         _repoCalendar = repoCalendar;
         _iCacheService = cacheService;
         _iBackgroundJobClient = backgroundJobClient;
+        _iLogger = logger;
     }
 
     public async Task<EventFullOutput> CreateAsync(EventCreateInput input)
     {
-        
-        var listStrCache = new List<string>();
-        await IsValidCalendar(input.CalendarId);
-
-        var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
-
-        var timeRunJobLiveTrue = input.StartDate.Ticks - DateTime.Now.Ticks;
-        var timeRunJobLiveFalse = input.EndDate.Ticks - DateTime.Now.Ticks;
-
-        var createdEvent = await _repoEvent.CreateAsync(eventEntity);
-        await _unitOfWork.SaveChangeAsync();
-
-        var dataCache = await _iCacheService.GetDataByKeyAsync<List<string>>(KeyCache.CacheSuggestLocation);
-        if (dataCache.Result != null)
+        try
         {
-            listStrCache.AddRange(dataCache.Result);
+            var listStrCache = new List<string>();
+            await IsValidCalendar(input.CalendarId);
+
+            var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
+
+            var timeRunJobLiveTrue = input.StartDate.Ticks - DateTime.Now.Ticks;
+            var timeRunJobLiveFalse = input.EndDate.Ticks - DateTime.Now.Ticks;
+
+            var createdEvent = await _repoEvent.CreateAsync(eventEntity);
+            await _unitOfWork.SaveChangeAsync();
+
+            var dataCache = await _iCacheService.GetDataByKeyAsync<List<string>>(KeyCache.CacheSuggestLocation);
+            if (dataCache.Result != null)
+            {
+                listStrCache.AddRange(dataCache.Result);
+            }
+
+            listStrCache.Add(input.AddressName);
+            await _iCacheService.SetDataAsync(KeyCache.CacheSuggestLocation, listStrCache);
+
+            _iBackgroundJobClient.Schedule(() => UpdateIsLiveEventAsync(createdEvent.Id, true), TimeSpan.FromTicks(timeRunJobLiveTrue));
+            _iBackgroundJobClient.Schedule(() => UpdateIsLiveEventAsync(createdEvent.Id, false), TimeSpan.FromTicks(timeRunJobLiveFalse));
+
+            return _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
+        }   
+        catch (Exception ex)
+        {
+            throw new FriendlyException("400",ex.Message);
         }
-        
-        listStrCache.Add(input.AddressName);
-        await _iCacheService.SetDataAsync(KeyCache.CacheSuggestLocation, listStrCache);
-
-        _iBackgroundJobClient.Schedule(() => UpdateIsLiveEventAsync(createdEvent.Id, true), TimeSpan.FromTicks(timeRunJobLiveTrue));
-        _iBackgroundJobClient.Schedule(() => UpdateIsLiveEventAsync(createdEvent.Id, false), TimeSpan.FromTicks(timeRunJobLiveFalse));
-
-        return _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
     }
 
     public async Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input)
@@ -133,7 +143,7 @@ public class EventService : IEventService
         }
     }
 
-    private async Task UpdateIsLiveEventAsync(Guid id, bool isLive)
+    public async Task UpdateIsLiveEventAsync(Guid id, bool isLive)
     {
         try
         {
@@ -145,11 +155,25 @@ public class EventService : IEventService
             }
             eventData.IsLive = isLive;
             _repoEvent.Update(eventData);
+            await _unitOfWork.SaveChangeAsync();
         }
         catch(Exception ex)
         {
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, 
-                                        $"{JsonConvert.SerializeObject(new { id, isLive })}");
+                                        ex.Message);
+        }
+    }
+
+    public async Task<ResponseModel<EventsModelResponse>> GetListEventByCalendarAsync()
+    {
+        try
+        {
+            throw new FriendlyException();
+        }
+        catch(Exception ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
         }
     }
 }

@@ -48,3 +48,9 @@ public class SectionCreateInput
     [Required]
     public DateTime StarDate { get; set; }
 }
+
+public class GetListEventCalendarModel : RequestBaseModel
+{
+    public Guid CalendarId { get; set; }
+    public bool IsUpcoming { get; set; }    
+}

@@ -20,5 +20,12 @@ namespace Donace_BE_Project.Controllers
             var a = (await _iCacheService.GetDataByKeyAsync<List<string>>(key));
             return a.Result;
         }
+
+        [HttpGet("suggest-test")]
+        public async Task<string> GetSuggestLocationAsync(string key, int pageNumber, int pageSize)
+        {
+            var a = (await _iCacheService.GetListDataByKeyPagingAsync(key, pageNumber, pageSize));
+            return a.Result;
+        }
     }
 }

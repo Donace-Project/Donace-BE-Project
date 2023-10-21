@@ -10,7 +10,7 @@ namespace Donace_BE_Project.Controllers;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class EventController : ControllerBase, IEventService
+public class EventController : ControllerBase
 {
     private readonly IEventService _service;
 

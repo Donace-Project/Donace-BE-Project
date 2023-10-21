@@ -1,4 +1,5 @@
-﻿using Donace_BE_Project.Models.Event.Input;
+﻿using Donace_BE_Project.Models;
+using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Shared.Pagination;
 
@@ -10,4 +11,5 @@ public interface IEventService
     Task<EventFullOutput> GetDetailById(Guid id);
     Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input);
     Task UpdateAsync(EventUpdateInput input);
+    Task<ResponseModel<EventsModelResponse>> GetListEventByCalendarAsync();
 }
