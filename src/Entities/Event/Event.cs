@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Donace_BE_Project.Entities.Base;
 
 namespace Donace_BE_Project.Entities.Calendar;
@@ -43,5 +44,6 @@ public class Event : BaseEntity
 
     public Guid CalendarId { get; set; }
 
-    public bool? IsLive { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Sorted { get; set; }
 }
