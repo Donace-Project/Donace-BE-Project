@@ -1,6 +1,8 @@
-﻿namespace Donace_BE_Project.Models.Event.Output;
+﻿using Donace_BE_Project.Models.Cache;
 
-public class EventFullOutput
+namespace Donace_BE_Project.Models.Event.Output;
+
+public class EventFullOutput : CacheSortedBaseModel
 {
     public Guid Id { get; set; }
 

@@ -2,6 +2,7 @@
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models;
+using Donace_BE_Project.Models.Cache;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using StackExchange.Redis;
@@ -101,17 +102,11 @@ namespace Donace_BE_Project.Services
             }
         }
 
-        public async Task SetListDataAsync<T>(string key, T value)
+        public async Task SetListDataSortedAsync<T>(string key, T value) where T : CacheSortedBaseModel
         {
             try
             {
-                var db = _iConnectionMultiplexer.GetDatabase();
-
-                var maxScoreValue = db.SortedSetRangeByScoreWithScores(key,
-                                                                           double.PositiveInfinity,
-                                                                           double.NegativeInfinity,
-                                                                           Exclude.None,
-                                                                           Order.Descending, 0, 1).FirstOrDefault();
+                var db = _iConnectionMultiplexer.GetDatabase();            
 
                 if (value is List<T>)
                 {
@@ -121,7 +116,7 @@ namespace Donace_BE_Project.Services
                     {
                         string data = JsonConvert.SerializeObject(listValue[i]);
 
-                        await db.SortedSetAddAsync(key, data, i + maxScoreValue.Score + 1);
+                        await db.SortedSetAddAsync(key, data, listValue[i].Sorted);
                     }
 
                     return;
@@ -129,7 +124,7 @@ namespace Donace_BE_Project.Services
 
                 string jsonData = JsonConvert.SerializeObject(value);
 
-                await db.SortedSetAddAsync(key, jsonData, maxScoreValue.Score + 1);
+                await db.SortedSetAddAsync(key, jsonData, value.Sorted);
 
                 return;
             }
