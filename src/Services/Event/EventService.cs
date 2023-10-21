@@ -52,9 +52,6 @@ public class EventService : IEventService
 
             var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
 
-            var timeRunJobLiveTrue = input.StartDate.Ticks - DateTime.Now.Ticks;
-            var timeRunJobLiveFalse = input.EndDate.Ticks - DateTime.Now.Ticks;
-
             var createdEvent = await _repoEvent.CreateAsync(eventEntity);
             await _unitOfWork.SaveChangeAsync();
 
@@ -67,10 +64,10 @@ public class EventService : IEventService
             listStrCache.Add(input.AddressName);
             await _iCacheService.SetDataAsync(KeyCache.CacheSuggestLocation, listStrCache);
 
-            _iBackgroundJobClient.Schedule(() => UpdateIsLiveEventAsync(createdEvent.Id, true), TimeSpan.FromTicks(timeRunJobLiveTrue));
-            _iBackgroundJobClient.Schedule(() => UpdateIsLiveEventAsync(createdEvent.Id, false), TimeSpan.FromTicks(timeRunJobLiveFalse));
+            var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
+            await _iCacheService.SetListDataAsync($"{KeyCache.CacheEvent}:{result.CalendarId}",result);
 
-            return _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
+            return result;
         }   
         catch (Exception ex)
         {
@@ -142,28 +139,6 @@ public class EventService : IEventService
             throw new FriendlyException(string.Empty, "Không tìm thấy calendar");
         }
     }
-
-    public async Task UpdateIsLiveEventAsync(Guid id, bool isLive)
-    {
-        try
-        {
-            var eventData = await _repoEvent.GetByIdAsync(id);
-
-            if(eventData is null)
-            {
-                return;
-            }
-            eventData.IsLive = isLive;
-            _repoEvent.Update(eventData);
-            await _unitOfWork.SaveChangeAsync();
-        }
-        catch(Exception ex)
-        {
-            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, 
-                                        ex.Message);
-        }
-    }
-
     public async Task<ResponseModel<EventsModelResponse>> GetListEventByCalendarAsync()
     {
         try

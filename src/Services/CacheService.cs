@@ -55,7 +55,7 @@ namespace Donace_BE_Project.Services
                 int start = (pageNumber - 1) * pageSize;
                 int stop = start + pageSize - 1;
 
-                SortedSetEntry[] pagedData = db.SortedSetRangeByRankWithScores(key, start, stop, Order.Descending);
+                SortedSetEntry[] pagedData = await db.SortedSetRangeByRankWithScoresAsync(key, start, stop, Order.Descending);
 
                 if(!pagedData.Any())
                 {
@@ -121,7 +121,7 @@ namespace Donace_BE_Project.Services
                     {
                         string data = JsonConvert.SerializeObject(listValue[i]);
 
-                        db.SortedSetAdd(key, data, i + maxScoreValue.Score);
+                        await db.SortedSetAddAsync(key, data, i + maxScoreValue.Score + 1);
                     }
 
                     return;
@@ -129,7 +129,7 @@ namespace Donace_BE_Project.Services
 
                 string jsonData = JsonConvert.SerializeObject(value);
 
-                db.SortedSetAdd(key, jsonData, maxScoreValue.Score + 1);
+                await db.SortedSetAddAsync(key, jsonData, maxScoreValue.Score + 1);
 
                 return;
             }
