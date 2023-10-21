@@ -117,7 +117,10 @@ public class EventService : IEventService
         }
 
         _repoEvent.CancelAsync(foundEvent);
-        await _repoSection.CancelSections(id);
+
+        await Task.WhenAll(_iCacheService.RemoveItemDataBySortedAsync($"{KeyCache.CacheEvent}:{foundEvent.CalendarId}", foundEvent.Sorted),
+                           _repoSection.CancelSections(id));
+        
         await _unitOfWork.SaveChangeAsync();
     }
     private async Task<EventEntity> FindEventAsync(Guid id)

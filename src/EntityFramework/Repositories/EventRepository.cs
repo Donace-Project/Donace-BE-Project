@@ -49,5 +49,6 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
     public void CancelAsync(Event entity)
     {
         entity.IsEnable = false;
+        _dbSet.Update(entity);
     }
 }

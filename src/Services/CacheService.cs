@@ -86,6 +86,20 @@ namespace Donace_BE_Project.Services
             }
         }
 
+        public async Task RemoveItemDataBySortedAsync(string key, double sorted)
+        {
+            try
+            {
+                var db = _iConnectionMultiplexer.GetDatabase();
+                await db.SortedSetRemoveAsync(key, sorted);
+            }
+            catch(Exception ex)
+            {
+                _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(sorted)}");
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CacheService , ex.Message);
+            }
+        }
+
         public async Task<ResponseModel<T>> SetDataAsync<T>(string key, T value)
         {
             try

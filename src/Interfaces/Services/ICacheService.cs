@@ -11,5 +11,6 @@ namespace Donace_BE_Project.Interfaces.Services
         Task<bool> RemoveDataAsync<T>(string key);
         Task<ResponseModel<string>> GetListDataByKeyPagingAsync(string key, int pageNumber, int pageSize);
         Task SetListDataSortedAsync<T>(string key, T value) where T : CacheSortedBaseModel;
+        Task RemoveItemDataBySortedAsync(string key, double sorted);
     }
 }
