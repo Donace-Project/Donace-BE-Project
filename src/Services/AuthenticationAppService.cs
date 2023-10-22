@@ -18,7 +18,7 @@ public class AuthenticationAppService : IAuthenticationAppService
 {
     private readonly IUserRepository _repo;
     private readonly IMapper _mapper;
-    
+    private readonly ICacheService _iCacheService;
     private readonly AppUserManager _userManager;
     
     private readonly JwtSetting _jwtSetting;
@@ -27,13 +27,15 @@ public class AuthenticationAppService : IAuthenticationAppService
     public AuthenticationAppService(IUserRepository repo,
                        IMapper mapper,
                        IOptions<JwtSetting> jwtSetting,
-                       AppUserManager userManager)
+                       AppUserManager userManager,
+                       ICacheService iCacheService)
     {
         _repo = repo;
         _mapper = mapper;
         _userManager = userManager;
 
         _jwtSetting = jwtSetting.Value;
+        _iCacheService = iCacheService;
     }
 
     public async Task<IdentityResult> RegisterAsync(UserDto input)
@@ -43,8 +45,9 @@ public class AuthenticationAppService : IAuthenticationAppService
             Email = input.Email,
             UserName = input.Email,
         };
-
-        return await _userManager.CreateAsync(user, input.Password);
+        var result = await _userManager.CreateAsync(user, input.Password);
+        await _iCacheService.SetDataAsync("",result);
+        return result;
     }
 
     public async Task<LoginResponse> LoginAsync(UserDto input)

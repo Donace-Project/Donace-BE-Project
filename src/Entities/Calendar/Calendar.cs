@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Donace_BE_Project.Entities.Base;
 
 namespace Donace_BE_Project.Entities.Calendar;
@@ -26,4 +27,7 @@ public class Calendar : BaseEntity
 
     [Required]
     public Guid UserId { get; set; }
+
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Sorted { get; set; }
 }

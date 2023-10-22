@@ -39,11 +39,11 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
         return new(totalCount, results);
     }
 
-    public Task<Event?> GetDetailById(Guid id)
+    public Task<Event?> GetDetailBySorted(int sorted)
     {
         return _dbSet
             .Include(z => z.Sections)
-            .FirstOrDefaultAsync(z => z.Id == id);
+            .FirstOrDefaultAsync(z => z.Sorted == sorted);
     }
 
     public void CancelAsync(Event entity)

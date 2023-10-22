@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Donace_BE_Project.Controllers;
 
-[Authorize]
+//[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class EventController : ControllerBase
@@ -32,9 +32,9 @@ public class EventController : ControllerBase
     }
 
     [HttpGet("detail")]
-    public Task<EventFullOutput> GetDetailById(Guid id)
+    public async Task<EventFullOutput> GetDetailById(int sorted, Guid calendarId)
     {
-        return _service.GetDetailById(id);
+        return await _service.GetDetailBySortedAsync(sorted, calendarId);
     }
 
     [HttpGet()]

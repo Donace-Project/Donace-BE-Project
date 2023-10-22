@@ -21,4 +21,6 @@ namespace Donace_BE_Project.Models.CalendarParticipation
         public Guid CalendarId { get; set; }
         public Guid Creator { get; set; }
     }
+
+
 }

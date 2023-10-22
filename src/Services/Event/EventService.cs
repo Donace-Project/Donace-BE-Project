@@ -24,6 +24,7 @@ public class EventService : IEventService
     private readonly IMapper _mapper;
     private readonly IBackgroundJobClient _iBackgroundJobClient;
     private readonly ILogger<EventService> _iLogger;
+    private readonly IUserProvider _iUserProvider;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
@@ -31,7 +32,8 @@ public class EventService : IEventService
                         IMapper mapper,
                         ICacheService cacheService,
                         IBackgroundJobClient backgroundJobClient,
-                        ILogger<EventService> logger)
+                        ILogger<EventService> logger,
+                        IUserProvider userProvider)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -41,8 +43,15 @@ public class EventService : IEventService
         _iCacheService = cacheService;
         _iBackgroundJobClient = backgroundJobClient;
         _iLogger = logger;
+        _iUserProvider = userProvider;
     }
 
+    /// <summary>
+    /// Tạo Event
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
     public async Task<EventFullOutput> CreateAsync(EventCreateInput input)
     {
         try
@@ -62,8 +71,7 @@ public class EventService : IEventService
             }
 
             listStrCache.Add(input.AddressName);
-            await _iCacheService.SetDataAsync(KeyCache.CacheSuggestLocation, listStrCache);
-
+            await _iCacheService.SetDataAsync($"{KeyCache.CacheSuggestLocation}:{_iUserProvider.GetUserId()}", listStrCache);
             var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
             await _iCacheService.SetListDataSortedAsync($"{KeyCache.CacheEvent}:{result.CalendarId}",result);
 
@@ -75,6 +83,11 @@ public class EventService : IEventService
         }
     }
 
+    /// <summary>
+    /// Lấy data có paging
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
     public async Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input)
     {
         var output = await _repoEvent.GetPaginationAsync(input);
@@ -86,17 +99,38 @@ public class EventService : IEventService
         };
     }
 
-    public async Task<EventFullOutput> GetDetailById(Guid id)
+    /// <summary>
+    /// Lấy thông tin event theo sorted
+    /// </summary>
+    /// <param name="sorted"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
+    public async Task<EventFullOutput> GetDetailBySortedAsync(int sorted, Guid calendarId)
     {
-        var output = await _repoEvent.GetDetailById(id);
-        if (output is null)
+        var dataCache = await _iCacheService.GetListDataByScoreAsync($"{KeyCache.CacheEvent}:{calendarId}", sorted);
+
+        if(!dataCache.Any())
         {
-            throw new FriendlyException(string.Empty, $"Không tìm thấy event có id: {id}");
+            var output = await _repoEvent.GetDetailBySorted(sorted);
+
+            if(output is null)
+            {
+                throw new FriendlyException(string.Empty, $"Không tìm thấy event có sort: {sorted}");
+            }
+
+            await _iCacheService.GetListDataByScoreAsync($"{KeyCache.CacheEvent}:{calendarId}", output.Sorted);
+
+            return _mapper.Map<EventEntity, EventFullOutput>(output);
         }
 
-        return _mapper.Map<EventEntity, EventFullOutput>(output);
+        return JsonConvert.DeserializeObject<EventFullOutput>(dataCache.FirstOrDefault());
     }
 
+    /// <summary>
+    /// Update event
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
     public async Task UpdateAsync(EventUpdateInput input)
     {
         await IsValidCalendar(input.CalendarId);
@@ -108,6 +142,12 @@ public class EventService : IEventService
         await _unitOfWork.SaveChangeAsync();
     }
 
+    /// <summary>
+    /// Cancel event
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
     public async Task CancelAsync(Guid id)
     {
         var foundEvent = await FindEventAsync(id);
@@ -123,8 +163,10 @@ public class EventService : IEventService
         
         await _unitOfWork.SaveChangeAsync();
     }
+
     private async Task<EventEntity> FindEventAsync(Guid id)
     {
+
         var foundEvent = await _repoEvent.GetByIdAsync(id);
         if (foundEvent is null)
         {

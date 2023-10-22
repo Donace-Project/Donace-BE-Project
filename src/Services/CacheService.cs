@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using System.ComponentModel;
+using System.Net.WebSockets;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Donace_BE_Project.Services
@@ -32,7 +33,7 @@ namespace Donace_BE_Project.Services
             try
             {
                 
-                var data = await _iDistributeCache.GetStringAsync($"{key}:{_iUserProvider.GetUserId()}");
+                var data = await _iDistributeCache.GetStringAsync(key);
                 if(string.IsNullOrEmpty(data))
                 {
                     return new ResponseModel<T>(true, "200");
@@ -72,11 +73,33 @@ namespace Donace_BE_Project.Services
             }
         }
 
+        public async Task<List<string>> GetListDataByScoreAsync(string key, double score)
+        {
+            try
+            {
+                var db = _iConnectionMultiplexer.GetDatabase();
+
+                var data = await db.SortedSetRangeByScoreAsync(key,score, score);
+
+                if (!data.Any())
+                {
+                    return new List<string>();
+                }
+                
+                return data.Select(x => (string)x).ToList();
+            }
+            catch(Exception ex)
+            {
+                _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(new { key, score })}");
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CacheService, ex.Message);
+            } 
+        }
+
         public async Task<bool> RemoveDataAsync<T>(string key)
         {
             try
             {
-                await _iDistributeCache.RemoveAsync($"{key}:{_iUserProvider.GetUserId()}");
+                await _iDistributeCache.RemoveAsync(key);
                 return true;
             }
             catch(Exception ex)
@@ -104,7 +127,6 @@ namespace Donace_BE_Project.Services
         {
             try
             {
-                key = $"{key}:{_iUserProvider.GetUserId()}";
                 var strData = JsonConvert.SerializeObject(value);
                 await _iDistributeCache.SetStringAsync(key, strData);
                 return new ResponseModel<T>(true, "200", value);

@@ -20,13 +20,15 @@ public class CalendarService : ICalendarService
     private readonly IUnitOfWork _iUnitOfWork;
     private readonly IUserProvider _userProvider;
     private readonly IUserService _iUserService;
+    private readonly ICacheService _iCacheService;
     public CalendarService(ICalendarRepository iCalendarRepository,
                            ILogger<CalendarService> logger,
                            IMapper mapper,
                            IUnitOfWork unitOfWork,
                            IUserProvider userProvider,
                            ICalendarParticipationService calendarParticipationService,
-                           IUserService userService)
+                           IUserService userService,
+                           ICacheService iCacheService)
     {
         _iCalendarRepository = iCalendarRepository;
         _iLogger = logger;
@@ -35,9 +37,16 @@ public class CalendarService : ICalendarService
         _userProvider = userProvider;
         _iCalendarParticipationService = calendarParticipationService;
         _iUserService = userService;
+        _iCacheService = iCacheService;
     }
 
-    public async Task<ResponseModel<CalendarModel>> CreateAsync(CalendarModel model)
+    /// <summary>
+    /// Tạo Calendar
+    /// </summary>
+    /// <param name="model"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
+    public async Task<ResponseModel<CalendarResponseModel>> CreateAsync(CalendarModel model)
     {
         try
         {
@@ -58,7 +67,11 @@ public class CalendarService : ICalendarService
 
             await _iCalendarParticipationService.CreateAsync(calendarParticipation);
 
-            return new ResponseModel<CalendarModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, model, new());
+            var dataOut = _iMapper.Map<Calendar, CalendarResponseModel>(resultCalendar);
+
+            await _iCacheService.SetListDataSortedAsync($"{KeyCache.Calendar}:{userId}", dataOut);
+
+            return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataOut, new());
         }
         catch (Exception ex)
         {
