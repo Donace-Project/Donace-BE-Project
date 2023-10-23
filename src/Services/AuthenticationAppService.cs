@@ -58,20 +58,20 @@ public class AuthenticationAppService : IAuthenticationAppService
 
         #region Check Redis
 
-        var user = await _iCacheService.GetDataByKeyAsync<string>($"{KeyCache.User}:{input.Email}");
-        if(user.Result is not null)
-        {
-            if (user.Result.Equals(input.Password))
-            {
-                output.Token = await CreateTokenAsync();
+        //var user = await _iCacheService.GetDataByKeyAsync<string>($"{KeyCache.User}:{input.Email}");
+        //if(user.Result is not null)
+        //{
+        //    if (user.Result.Equals(input.Password))
+        //    {
+        //        output.Token = await CreateTokenAsync();
 
-                return output;
-            }
-            else
-            {
-                throw new LoginException();
-            }
-        }
+        //        return output;
+        //    }
+        //    else
+        //    {
+        //        throw new LoginException();
+        //    }
+        //}
 
         #endregion
 
@@ -87,7 +87,7 @@ public class AuthenticationAppService : IAuthenticationAppService
         {
             throw new LoginException();
         }
-
+        output.Token = await CreateTokenAsync();
         
         #endregion
 

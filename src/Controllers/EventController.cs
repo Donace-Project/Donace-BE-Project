@@ -26,7 +26,7 @@ public class EventController : ControllerBase
     }
 
     [HttpPost()]
-    public Task<EventFullOutput> CreateAsync(EventCreateInput input)
+    public Task<EventFullOutput> CreateAsync([FromForm]EventCreateInput input)
     {
         return _service.CreateAsync(input);
     }

@@ -26,5 +26,7 @@
 
         public const string Donace_BE_Project_Bad_Request_EventService = "Donace_BE_Project_EventService:400";
 
+        public const string Donace_BE_Project_Bad_Request_CommonService = "Donace_BE_Project_CommonService:400";
+
     }
 }

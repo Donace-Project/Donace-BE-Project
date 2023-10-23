@@ -25,6 +25,7 @@ public class EventService : IEventService
     private readonly IBackgroundJobClient _iBackgroundJobClient;
     private readonly ILogger<EventService> _iLogger;
     private readonly IUserProvider _iUserProvider;
+    private readonly ICommonService _commonService;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
@@ -33,7 +34,8 @@ public class EventService : IEventService
                         ICacheService cacheService,
                         IBackgroundJobClient backgroundJobClient,
                         ILogger<EventService> logger,
-                        IUserProvider userProvider)
+                        IUserProvider userProvider,
+                        ICommonService commonService)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -44,6 +46,7 @@ public class EventService : IEventService
         _iBackgroundJobClient = backgroundJobClient;
         _iLogger = logger;
         _iUserProvider = userProvider;
+        _commonService = commonService;
     }
 
     /// <summary>
@@ -60,6 +63,7 @@ public class EventService : IEventService
             await IsValidCalendar(input.CalendarId);
 
             var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
+            eventEntity.Cover = _commonService.UpLoadImageAsync(input.Image, eventEntity.Id);
 
             var createdEvent = await _repoEvent.CreateAsync(eventEntity);
             await _unitOfWork.SaveChangeAsync();

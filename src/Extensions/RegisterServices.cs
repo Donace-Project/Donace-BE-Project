@@ -63,6 +63,7 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<ICalendarService, CalendarService>();
             services.AddTransient<ICalendarParticipationService, CalendarParticipationService>();
             services.AddTransient<ICacheService, CacheService>();
+            services.AddTransient<ICommonService, CommonService>();
 
             return services;
         }
