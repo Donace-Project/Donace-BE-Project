@@ -18,7 +18,7 @@ public class CalendarController : ControllerBase
     }
 
     [HttpPost("create-calendar")]
-    public async Task<ResponseModel<CalendarModel>> CreateAsync(CalendarModel model)
+    public async Task<ResponseModel<CalendarResponseModel>> CreateAsync(CalendarModel model)
     {
         return await _iCalendarService.CreateAsync(model);
     }

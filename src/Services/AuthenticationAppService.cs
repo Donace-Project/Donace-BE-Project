@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
@@ -8,6 +9,7 @@ using Donace_BE_Project.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -46,12 +48,34 @@ public class AuthenticationAppService : IAuthenticationAppService
             UserName = input.Email,
         };
         var result = await _userManager.CreateAsync(user, input.Password);
-        await _iCacheService.SetDataAsync("",result);
+        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", input.Password);
         return result;
     }
 
     public async Task<LoginResponse> LoginAsync(UserDto input)
     {
+        var output = new LoginResponse();
+
+        #region Check Redis
+
+        var user = await _iCacheService.GetDataByKeyAsync<string>($"{KeyCache.User}:{input.Email}");
+        if(user.Result is not null)
+        {
+            if (user.Result.Equals(input.Password))
+            {
+                output.Token = await CreateTokenAsync();
+
+                return output;
+            }
+            else
+            {
+                throw new LoginException();
+            }
+        }
+
+        #endregion
+
+        #region CheckDb
         _user = await _userManager.FindByEmailAsync(input.Email);
         if (_user is null)
         {
@@ -64,10 +88,8 @@ public class AuthenticationAppService : IAuthenticationAppService
             throw new LoginException();
         }
 
-        var output = new LoginResponse()
-        {
-            Token = await CreateTokenAsync()
-        };
+        
+        #endregion
 
         return output;
     }
