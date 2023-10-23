@@ -63,7 +63,7 @@ public class EventService : IEventService
             await IsValidCalendar(input.CalendarId);
 
             var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
-            eventEntity.Cover = _commonService.UpLoadImageAsync(input.Image, eventEntity.Id);
+            eventEntity.Cover = await _commonService.UpLoadImageAsync(input.Image, eventEntity.Id);
 
             var createdEvent = await _repoEvent.CreateAsync(eventEntity);
             await _unitOfWork.SaveChangeAsync();

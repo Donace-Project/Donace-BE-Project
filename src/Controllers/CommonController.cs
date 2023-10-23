@@ -18,9 +18,9 @@ namespace Donace_BE_Project.Controllers
         }
 
         [HttpPost("upload-file")]
-        public string UploadFile(IFormFile file)
+        public async Task<string> UploadFile(IFormFile file)
         {
-            return _commonService.UpLoadImageAsync(file, Guid.NewGuid());
+            return await _commonService.UpLoadImageAsync(file, Guid.NewGuid());
         }
     }
 }

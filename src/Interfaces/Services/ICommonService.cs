@@ -2,6 +2,6 @@
 {
     public interface ICommonService
     {
-        string UpLoadImageAsync(IFormFile file, Guid eventId);
+        Task<string> UpLoadImageAsync(IFormFile file, Guid eventId);
     }
 }
