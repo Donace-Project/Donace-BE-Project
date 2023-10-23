@@ -78,7 +78,8 @@ public class CalendarParticipationService : ICalendarParticipationService
         {
             var userId = _iUserProvider.GetUserId();
             var listId = await _iCalendarParticipationRepository.GetListCalendarIdAsync(x => x.UserId == userId &&
-                                                                                             x.IsDeleted == false);
+                                                                                             x.IsDeleted == false &&
+                                                                                             x.IsSubcribed == false);
 
             return new ResponseModel<List<Guid>>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, listId, new());
         }

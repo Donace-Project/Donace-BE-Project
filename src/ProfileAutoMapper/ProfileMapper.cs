@@ -41,6 +41,8 @@ namespace Application.ProfileAutoMapper
             CreateMap<Calendar, CalendarUpdateModel>().ReverseMap();
             CreateMap<Calendar, GetListCalendarModel>()
                 .ReverseMap();
+
+            CreateMap<Calendar, CalendarResponseModel>().ReverseMap();
             #endregion
 
             #region CalendarParticipation

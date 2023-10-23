@@ -46,13 +46,12 @@ public class CalendarUpdateModel
     public string AddressName { get; set; } = string.Empty;
 }
 
-public class GetListCalendarModel
+public class GetListCalendarModel : CacheSortedBaseModel
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
-    public int TotalSubcriber {  get; set; }
+    public int TotalSubcriber { get; set; }
     public string Avatar { get; set; }
-    public bool IsAdmin { get; set; }
     public Guid UserId { get; set; }
 }
 
@@ -93,4 +92,6 @@ public class CalendarResponseModel : CacheSortedBaseModel
     public string Long { get; set; } = string.Empty;
 
     public string AddressName { get; set; } = string.Empty;
+
+    public int TotalSubcribed { get; set;}
 }

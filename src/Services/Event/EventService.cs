@@ -77,7 +77,7 @@ public class EventService : IEventService
             listStrCache.Add(input.AddressName);
             await _iCacheService.SetDataAsync($"{KeyCache.CacheSuggestLocation}:{_iUserProvider.GetUserId()}", listStrCache);
             var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
-            await _iCacheService.SetListDataSortedAsync($"{KeyCache.CacheEvent}:{result.CalendarId}",result);
+            await _iCacheService.SetDataSortedAsync($"{KeyCache.CacheEvent}:{result.CalendarId}",new List<EventFullOutput>() { result});
 
             return result;
         }   

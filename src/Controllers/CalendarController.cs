@@ -24,7 +24,7 @@ public class CalendarController : ControllerBase
     }
 
     [HttpPost("update-calendar")]
-    public async Task<ResponseModel<CalendarUpdateModel>> UpdateAsync(CalendarUpdateModel model)
+    public async Task<ResponseModel<CalendarResponseModel>> UpdateAsync(CalendarUpdateModel model)
     {
         return await _iCalendarService.UpdateAsync(model);
     }

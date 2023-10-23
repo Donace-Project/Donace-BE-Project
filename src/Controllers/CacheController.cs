@@ -24,8 +24,8 @@ namespace Donace_BE_Project.Controllers
         [HttpGet("suggest-test")]
         public async Task<string> GetSuggestLocationAsync(string key, int pageNumber, int pageSize)
         {
-            var a = (await _iCacheService.GetListDataByKeyPagingAsync(key, pageNumber, pageSize));
-            return a.Result;
+            // var a = (await _iCacheService.GetListDataByKeyPagingAsync(key, pageNumber, pageSize));
+            return null;
         }
     }
 }

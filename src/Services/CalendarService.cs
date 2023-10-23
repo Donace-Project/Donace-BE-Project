@@ -69,7 +69,7 @@ public class CalendarService : ICalendarService
 
             var dataOut = _iMapper.Map<Calendar, CalendarResponseModel>(resultCalendar);
 
-            await _iCacheService.SetListDataSortedAsync($"{KeyCache.Calendar}:{userId}", dataOut);
+            await _iCacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", new List<CalendarResponseModel>() { dataOut});
 
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataOut, new());
         }
@@ -108,7 +108,25 @@ public class CalendarService : ICalendarService
     {
         try
         {
+            var result = new List<GetListCalendarModel>();
             var userId = _userProvider.GetUserId();
+
+            #region Get Redis
+
+            var strResult = await _iCacheService.GetListDataByKeyPagingAsync<GetListCalendarModel>($"{KeyCache.Calendar}:{userId}", 
+                                                                                                   input.PageNumber, 
+                                                                                                   input.PageSize);
+
+            if(strResult.Code == "200")
+            {
+                result = strResult.Result;
+                return new ResponseModel<List<GetListCalendarModel>>(true, "200", result);
+            }
+
+            #endregion
+
+            #region Get DB
+
             var litsCalendarId = await _iCalendarParticipationService.GetListIdCalendarByUserIdAsync();
 
             if (!litsCalendarId.Result.Any())
@@ -116,15 +134,20 @@ public class CalendarService : ICalendarService
                 return new ResponseModel<List<GetListCalendarModel>>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, new List<GetListCalendarModel>(), new());
             }
 
-            var listcalendar = await _iCalendarRepository.GetListCalendarByIds(litsCalendarId.Result, input.PageNumber, input.PageSize);
-            var totalCount = await _iCalendarRepository.CountAsync(x => litsCalendarId.Result.Contains(x.Id));
-            var result = _iMapper.Map<List<GetListCalendarModel>>(listcalendar);
+            var listcalendar = await _iCalendarRepository.GetListCalendarByIds(litsCalendarId.Result, 
+                                                                               input.PageNumber, 
+                                                                               input.PageSize);
 
-            foreach(var item in result)
-            {
-                item.IsAdmin = item.UserId == userId ? true : false;
-            }
-            return new ResponseModel<List<GetListCalendarModel>>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, result, new(totalCount, input.PageNumber, input.PageSize));
+            var totalCount = await _iCalendarRepository.CountAsync(x => litsCalendarId.Result.Contains(x.Id));
+            result = _iMapper.Map<List<GetListCalendarModel>>(listcalendar);
+
+            await _iCacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", 
+                                                       _iMapper.Map<List<CalendarResponseModel>>(listcalendar));
+            #endregion
+            return new ResponseModel<List<GetListCalendarModel>>(true, 
+                                                                 ResponseCode.Donace_BE_Project_CalendarService_Success, 
+                                                                 result, 
+                                                                 new(totalCount, input.PageNumber, input.PageSize));
             
         }
         catch (Exception ex) 
@@ -157,7 +180,7 @@ public class CalendarService : ICalendarService
         }
     }
 
-    public async Task<ResponseModel<CalendarUpdateModel>> UpdateAsync(CalendarUpdateModel model)
+    public async Task<ResponseModel<CalendarResponseModel>> UpdateAsync(CalendarUpdateModel model)
     {
         try
         {
@@ -168,7 +191,10 @@ public class CalendarService : ICalendarService
             _iCalendarRepository.Update(calendarData);
             await _iUnitOfWork.SaveChangeAsync();
 
-            return new ResponseModel<CalendarUpdateModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, model, new());
+            var dataout = _iMapper.Map<CalendarUpdateModel, CalendarResponseModel>(model);
+            await _iCacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{_userProvider.GetUserId()}", dataout.Sorted, dataout);
+
+            return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataout, new());
         }
         catch (Exception ex)
         {

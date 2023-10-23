@@ -49,7 +49,7 @@ namespace Donace_BE_Project.Services
             }
         }
 
-        public async Task<ResponseModel<string>> GetListDataByKeyPagingAsync(string key, int pageNumber, int pageSize)
+        public async Task<ResponseModel<List<T>>> GetListDataByKeyPagingAsync<T>(string key, int pageNumber, int pageSize)
         {
             try
             {
@@ -61,10 +61,14 @@ namespace Donace_BE_Project.Services
 
                 if(!pagedData.Any())
                 {
-                    return new ResponseModel<string>(true, "204", string.Empty);
+                    return new ResponseModel<List<T>>(true, "204", new());
                 }
-                var strResult = JsonConvert.SerializeObject(pagedData.Select(x => x.Element));
-                return new ResponseModel<string>(true, "200", strResult);
+                var listResult = new List<T>();
+                for(var  i = 0; i < pagedData.Count(); i++)
+                {
+                    listResult.Add(JsonConvert.DeserializeObject<T>(pagedData[i].Element));
+                }
+                return new ResponseModel<List<T>>(true, "200", listResult);
             }
             catch (Exception ex)
             {
@@ -138,35 +142,45 @@ namespace Donace_BE_Project.Services
             }
         }
 
-        public async Task SetListDataSortedAsync<T>(string key, T value) where T : CacheSortedBaseModel
+        public async Task SetDataSortedAsync<T>(string key, List<T> value) where T : CacheSortedBaseModel
         {
             try
             {
                 var db = _iConnectionMultiplexer.GetDatabase();            
-
+                
                 if (value is List<T>)
                 {
                     List<T> listValue = (List<T>)Convert.ChangeType(value, typeof(List<T>));                                        
 
-                    for(int i = 0; i <= listValue.Count; i++)
+                    for(int i = 1; i <= listValue.Count; i++)
                     {
-                        string data = JsonConvert.SerializeObject(listValue[i]);
+                        string data = JsonConvert.SerializeObject(listValue[i - 1]);
 
-                        await db.SortedSetAddAsync(key, data, listValue[i].Sorted);
+                        await db.SortedSetAddAsync(key, data, listValue[i - 1].Sorted);
                     }
 
                     return;
                 }
-
-                string jsonData = JsonConvert.SerializeObject(value);
-
-                await db.SortedSetAddAsync(key, jsonData, value.Sorted);
-
-                return;
+                
             }
             catch(Exception ex)
             {
                 _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(value)}");
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CacheService, ex.Message);
+            }
+        }
+
+        public async Task UpdateValueScoreAsync<T>(string key, double score, T value)
+        {
+            try
+            {
+                var db = _iConnectionMultiplexer.GetDatabase();
+                var strResult = JsonConvert.SerializeObject(value);
+                await db.SortedSetAddAsync(key , strResult, score);
+            }
+            catch(Exception ex)
+            {
+                _iLogger.LogError($"CacheService.Exception: {ex.Message}", JsonConvert.SerializeObject(value));
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CacheService, ex.Message);
             }
         }
