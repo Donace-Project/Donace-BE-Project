@@ -48,7 +48,7 @@ public class AuthenticationAppService : IAuthenticationAppService
             UserName = input.Email,
         };
         var result = await _userManager.CreateAsync(user, input.Password);
-        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", input.Password);
+        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", user);
         return result;
     }
 
@@ -58,24 +58,19 @@ public class AuthenticationAppService : IAuthenticationAppService
 
         #region Check Redis
 
-        //var user = await _iCacheService.GetDataByKeyAsync<string>($"{KeyCache.User}:{input.Email}");
-        //if(user.Result is not null)
-        //{
-        //    if (user.Result.Equals(input.Password))
-        //    {
-        //        output.Token = await CreateTokenAsync();
+        var user = await _iCacheService.GetDataByKeyAsync<User>($"{KeyCache.User}:{input.Email}");
+        if (user.Result is not null)
+        {
+            _user = user.Result;
+            output.Token = await CreateTokenAsync();
 
-        //        return output;
-        //    }
-        //    else
-        //    {
-        //        throw new LoginException();
-        //    }
-        //}
+            return output;
+        }
 
         #endregion
 
         #region CheckDb
+
         _user = await _userManager.FindByEmailAsync(input.Email);
         if (_user is null)
         {
@@ -88,6 +83,7 @@ public class AuthenticationAppService : IAuthenticationAppService
             throw new LoginException();
         }
         output.Token = await CreateTokenAsync();
+        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", _user);
         
         #endregion
 
