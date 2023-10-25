@@ -13,5 +13,7 @@
         public const string CalendarParOfCusSub = "CalendarParOfCusSubCache";
 
         public const string User = "UserCache";
+
+        public const string CalendarSubcribed = "CalendarSubcribedCache";
     }
 }

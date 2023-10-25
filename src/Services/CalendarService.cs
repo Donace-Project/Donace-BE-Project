@@ -80,6 +80,12 @@ public class CalendarService : ICalendarService
         }
     }
 
+    /// <summary>
+    /// Xoá Calendar
+    /// </summary>
+    /// <param name="Id"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
     public async Task<ResponseModel<CalendarUpdateModel>> DeleteAsync(Guid Id)
     {
         try
@@ -104,6 +110,12 @@ public class CalendarService : ICalendarService
         }
     }
 
+    /// <summary>
+    /// Lấy danh sách Calendar
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
     public async Task<ResponseModel<List<GetListCalendarModel>>> GetListCalendarAsync(RequestBaseModel input)
     {
         try
@@ -157,6 +169,12 @@ public class CalendarService : ICalendarService
         }
     }
 
+    /// <summary>
+    /// Lấy Danh Sách User Trong Calendar
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
     public async Task<ResponseModel<List<GetListUserInCalendarModel>>> GetListUserInCalendarAsync(RequestGetListUserInCalendarModel input)
     {
         try
@@ -180,6 +198,12 @@ public class CalendarService : ICalendarService
         }
     }
 
+    /// <summary>
+    /// Update calendar
+    /// </summary>
+    /// <param name="model"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
     public async Task<ResponseModel<CalendarResponseModel>> UpdateAsync(CalendarUpdateModel model)
     {
         try
@@ -199,6 +223,50 @@ public class CalendarService : ICalendarService
         catch (Exception ex)
         {
             _iLogger.LogError($"CalendarService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(model)}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Join calendar
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public async Task UserJoinCalendarAsync(UserJoinCalendarReqModel input)
+    {
+        try
+        {
+            var userId = _userProvider.GetUserId();
+            await _iCalendarParticipationService.CreateAsync(new CalendarParticipationModel
+            {
+                UserId = userId,
+                CalendarId = input.CalendarId
+            }, true);
+
+            #region redis
+
+            var calendars = await _iCacheService.GetListDataByScoreAsync($"{KeyCache.Calendar}:{input.CreatorId}", input.Sorted);
+            var calendarUserJoin = new CalendarResponseModel();
+
+            if (!calendars.Any())
+            {
+                var calendarDb = await _iCalendarRepository.FindAsync(x => x.Id == input.CalendarId);
+                calendarUserJoin = _iMapper.Map<CalendarResponseModel>(calendarUserJoin);                
+            }
+            else
+            {
+                calendarUserJoin = JsonConvert.DeserializeObject<CalendarResponseModel>(calendars.FirstOrDefault());
+            }
+
+            await _iCacheService.SetDataSortedAsync($"{KeyCache.CalendarSubcribed}:{userId}", 
+                                                    new List<CalendarResponseModel> { calendarUserJoin});
+
+
+            #endregion
+        }
+        catch (Exception ex)
+        {
+            _iLogger.LogError($"Calendar.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(input)}");
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
         }
     }

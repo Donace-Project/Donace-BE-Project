@@ -29,16 +29,15 @@ public class CalendarParticipationService : ICalendarParticipationService
         _iUnitOfWork = unitOfWork;
         _iUserProvider = iUserProvider;
     }
-    public async Task<ResponseModel<CalendarParticipationModel>> CreateAsync(CalendarParticipationModel model)
+    public async Task<ResponseModel<CalendarParticipationModel>> CreateAsync(CalendarParticipationModel model, bool isSubcribed = false)
     {
         try
         {
             var calendarParti = _iMapper.Map<CalendarParticipation>(model);
-
+            calendarParti.IsSubcribed = isSubcribed;
             await _iCalendarParticipationRepository.CreateAsync(calendarParti);
             await _iUnitOfWork.SaveChangeAsync();
 
-            // TODO: 
             return new ResponseModel<CalendarParticipationModel>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, model, new());
         }
         catch(Exception ex)

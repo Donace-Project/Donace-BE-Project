@@ -10,4 +10,5 @@ public interface ICalendarService
     Task<ResponseModel<CalendarUpdateModel>> DeleteAsync(Guid Id);
     Task<ResponseModel<List<GetListCalendarModel>>> GetListCalendarAsync(RequestBaseModel input);
     Task<ResponseModel<List<GetListUserInCalendarModel>>> GetListUserInCalendarAsync(RequestGetListUserInCalendarModel input);
+    Task UserJoinCalendarAsync(UserJoinCalendarReqModel input);
 }

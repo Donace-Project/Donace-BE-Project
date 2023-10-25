@@ -46,4 +46,10 @@ public class CalendarController : ControllerBase
     {
         return await _iCalendarService.GetListUserInCalendarAsync(input);
     }
+
+    [HttpPost("user-join")]
+    public async Task UserJoinCalendarAsync(UserJoinCalendarReqModel input)
+    {
+        await _iCalendarService.UserJoinCalendarAsync(input);
+    }
 }

@@ -9,7 +9,7 @@ namespace Donace_BE_Project.Models.CalendarParticipation
 
         [Required]
         public Guid CalendarId { get; set; }
-        public Guid Creator {  get; set; }
+        public Guid? Creator {  get; set; }
     }
 
     public class CalendarParticipationGetByCalendarIdModel
@@ -19,7 +19,7 @@ namespace Donace_BE_Project.Models.CalendarParticipation
 
         [Required]
         public Guid CalendarId { get; set; }
-        public Guid Creator { get; set; }
+        public Guid? Creator { get; set; }
     }
 
 
