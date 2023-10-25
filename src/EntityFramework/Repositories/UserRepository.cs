@@ -14,6 +14,12 @@ namespace EntityFramework.Repository
             _dbContext = customerDb;
         }
 
+        public async Task<User?> FindAsync(Expression<Func<User, bool>> predicate)
+        {
+            var user = await _dbContext.Users.FindAsync(predicate);
+            return user;
+        }
+
         public ValueTask<User?> FindByIdAsync(Guid id)
         {
             return _dbContext.Users.FindAsync(id.ToString());

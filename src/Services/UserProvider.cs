@@ -12,6 +12,19 @@ public class UserProvider : IUserProvider
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
+    public string GetEmailUser()
+    {
+        var claim = _context?.HttpContext?.User.Claims
+                   .FirstOrDefault(i => i.Type == ClaimTypes.Email);
+
+        if (claim is null)
+        {
+            return string.Empty;
+        }
+
+        return claim.Value.ToString();
+    }
+
     public Guid GetUserId()
     {
         var claim = _context?.HttpContext?.User.Claims

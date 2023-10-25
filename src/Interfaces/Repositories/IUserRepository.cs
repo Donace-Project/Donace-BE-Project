@@ -10,5 +10,7 @@ namespace Donace_BE_Project.Interfaces.Repositories
         void Update(User user);
 
         Task<List<User>> GetListAsync(Expression<Func<User, bool>> predicate);
+
+        Task<User?> FindAsync(Expression<Func<User, bool>> predicate); 
     }
 }

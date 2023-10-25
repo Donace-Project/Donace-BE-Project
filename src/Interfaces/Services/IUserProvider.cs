@@ -3,4 +3,5 @@
 public interface IUserProvider
 {
     Guid GetUserId();
+    string GetEmailUser();
 }
