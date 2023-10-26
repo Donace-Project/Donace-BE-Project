@@ -13,11 +13,21 @@ public class CalendarRepository : RepositoryBase<Calendar>, ICalendarRepository
     {
     }
 
-    public async Task<List<Calendar>> GetListCalendarByIds(List<Guid> Ids, int pageNumber, int pageSize)
+    public async Task<List<Calendar>> GetListCalendarByIdUser(Guid userId, int pageNumber, int pageSize)
     {
-        return await _dbSet.Where(x => Ids.Contains(x.Id))
+        return await _dbSet.Where(x => x.CreatorId.Equals(userId))
                            .Skip((pageNumber - 1) * pageSize)
                            .Take(pageSize)
+                           .OrderByDescending(x => x.Sorted)
+                           .ToListAsync();
+    }
+
+    public async Task<List<Calendar>> GetListCalendarPagingByIdsAsync(List<Guid> ids, int pageNumber, int pageSize)
+    {
+        return await _dbSet.Where(x => ids.Contains(x.Id))
+                           .Skip((pageNumber -1) * pageSize)
+                           .Take(pageSize)
+                           .OrderByDescending(x => x.Sorted)
                            .ToListAsync();
     }
 }

@@ -56,6 +56,6 @@ public class CalendarController : ControllerBase
     [HttpPost("get-list-subcribed")]
     public async Task<ResponseModel<List<GetListCalendarModel>>> GetListSubcribedAsync(RequestBaseModel input)
     {
-        throw new Exception();
+        return await _iCalendarService.GetListCalendarSubcribedAsync(input);
     }
 }
