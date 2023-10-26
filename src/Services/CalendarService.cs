@@ -170,6 +170,27 @@ public class CalendarService : ICalendarService
     }
 
     /// <summary>
+    /// Lấy danh sách calendar user subcribed
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public async Task<ResponseModel<List<GetListCalendarModel>>> GetListCalendarSubcribedAsync(RequestBaseModel input)
+    {
+        try
+        {
+            var userId = _userProvider.GetUserId();
+            var dataCache = await _iCacheService.GetListDataByKeyRangeIdAsync<GetListCalendarModel>($"{KeyCache.CalendarSubcribed}:{userId}", input.PageNumber, input.PageSize);
+            throw new Exception();
+        }
+        catch(Exception ex)
+        {
+            _iLogger.LogError($"CalendarService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(input)}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
+        }
+    }
+
+    /// <summary>
     /// Lấy Danh Sách User Trong Calendar
     /// </summary>
     /// <param name="input"></param>

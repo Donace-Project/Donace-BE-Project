@@ -52,4 +52,10 @@ public class CalendarController : ControllerBase
     {
         await _iCalendarService.UserJoinCalendarAsync(input);
     }
+
+    [HttpPost("get-list-subcribed")]
+    public async Task<ResponseModel<List<GetListCalendarModel>>> GetListSubcribedAsync(RequestBaseModel input)
+    {
+        throw new Exception();
+    }
 }
