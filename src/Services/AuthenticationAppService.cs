@@ -134,7 +134,7 @@ public class AuthenticationAppService : IAuthenticationAppService
         issuer: _jwtSetting.Issuer,
         audience: _jwtSetting.Audience,
         claims: claims,
-        expires: DateTime.Now.AddMinutes(1440),
+        expires: DateTime.MaxValue,
         signingCredentials: signingCredentials
         );
         return tokenOptions;
