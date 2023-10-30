@@ -2,7 +2,6 @@
 using Donace_BE_Project.Entities.Calendar;
 using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.Extensions;
-using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models.Calendar;
 using Donace_BE_Project.Models.CalendarParticipation;
 using Donace_BE_Project.Models.Event.Input;

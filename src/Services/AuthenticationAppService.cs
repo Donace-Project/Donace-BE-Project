@@ -6,10 +6,8 @@ using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models.User;
 using Donace_BE_Project.Settings;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -22,7 +20,7 @@ public class AuthenticationAppService : IAuthenticationAppService
     private readonly IMapper _mapper;
     private readonly ICacheService _iCacheService;
     private readonly AppUserManager _userManager;
-    
+
     private readonly JwtSetting _jwtSetting;
     private User? _user;
 
@@ -40,15 +38,16 @@ public class AuthenticationAppService : IAuthenticationAppService
         _iCacheService = iCacheService;
     }
 
-    public async Task<IdentityResult> RegisterAsync(UserDto input)
+    public async Task<RegisterResponse> RegisterAsync(UserDto input)
     {
+        var output = new RegisterResponse();
         User user = new()
         {
             Email = input.Email,
             UserName = input.Email,
         };
         var result = await _userManager.CreateAsync(user, input.Password);
-        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}:{input.Password}", user);
+        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", user);
         return result;
     }
 
@@ -58,13 +57,13 @@ public class AuthenticationAppService : IAuthenticationAppService
 
         #region Check Redis
 
-        var user = await _iCacheService.GetDataByKeyAsync<User>($"{KeyCache.User}:{input.Email}:{input.Password}");
+        var user = await _iCacheService.GetDataByKeyAsync<User>($"{KeyCache.User}:{input.Email}");
         if (user.Result is not null)
         {
             _user = user.Result;
-
             output.Token = await CreateTokenAsync();
 
+            output.User = _mapper.Map<User, UserModel>(user.Result);
             return output;
         }
 
@@ -83,8 +82,9 @@ public class AuthenticationAppService : IAuthenticationAppService
         {
             throw new LoginException();
         }
+
         output.Token = await CreateTokenAsync();
-        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}:{input.Password}", _user);
+        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", _user);
         
         #endregion
 
@@ -135,7 +135,7 @@ public class AuthenticationAppService : IAuthenticationAppService
         issuer: _jwtSetting.Issuer,
         audience: _jwtSetting.Audience,
         claims: claims,
-        expires: DateTime.Now.AddMinutes(1440),
+        expires: DateTime.MaxValue,
         signingCredentials: signingCredentials
         );
         return tokenOptions;

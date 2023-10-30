@@ -17,7 +17,7 @@ public class HandleExceptionTestController : ControllerBase
     [HttpGet("profile")]
     public Task<UserModel> Profile(Guid userId)
     {
-        throw new FriendlyException("404", "không không tìm thấy user")
+        throw new FriendlyException("404", "không không tìm thấy user test update")
             .WithData("UserId", userId);
     }
 }

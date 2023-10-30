@@ -32,8 +32,8 @@ namespace Donace_BE_Project.Services
         {
             try
             {
-                
-                var data = await _iDistributeCache.GetStringAsync(key);
+                var userId = _iUserProvider.GetUserId();
+                var data = await _iDistributeCache.GetStringAsync($"{key}:{userId}");
                 if(string.IsNullOrEmpty(data))
                 {
                     return new ResponseModel<T>(true, "200");
