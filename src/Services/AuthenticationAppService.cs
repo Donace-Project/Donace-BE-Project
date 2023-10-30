@@ -6,10 +6,8 @@ using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models.User;
 using Donace_BE_Project.Settings;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -22,7 +20,7 @@ public class AuthenticationAppService : IAuthenticationAppService
     private readonly IMapper _mapper;
     private readonly ICacheService _iCacheService;
     private readonly AppUserManager _userManager;
-    
+
     private readonly JwtSetting _jwtSetting;
     private User? _user;
 
@@ -40,16 +38,24 @@ public class AuthenticationAppService : IAuthenticationAppService
         _iCacheService = iCacheService;
     }
 
-    public async Task<IdentityResult> RegisterAsync(UserDto input)
+    public async Task<RegisterResponse> RegisterAsync(UserDto input)
     {
+        var output = new RegisterResponse();
         User user = new()
         {
             Email = input.Email,
             UserName = input.Email,
         };
-        var result = await _userManager.CreateAsync(user, input.Password);
+
+        output.Result = await _userManager.CreateAsync(user, input.Password);
+        if (!output.Result.Succeeded) return output;
+
         await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", user);
-        return result;
+
+        _user = await _userManager.FindByEmailAsync(input.Email);
+        output.Token = await CreateTokenAsync();
+        output.User = _mapper.Map<User, UserModel>(_user);
+        return output;
     }
 
     public async Task<LoginResponse> LoginAsync(UserDto input)
@@ -64,6 +70,7 @@ public class AuthenticationAppService : IAuthenticationAppService
             _user = user.Result;
             output.Token = await CreateTokenAsync();
 
+            output.User = _mapper.Map<User, UserModel>(user.Result);
             return output;
         }
 
@@ -82,9 +89,12 @@ public class AuthenticationAppService : IAuthenticationAppService
         {
             throw new LoginException();
         }
+
         output.Token = await CreateTokenAsync();
+        output.User = _mapper.Map<User, UserModel>(_user);
+
         await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", _user);
-        
+
         #endregion
 
         return output;

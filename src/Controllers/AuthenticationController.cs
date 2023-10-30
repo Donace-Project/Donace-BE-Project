@@ -16,12 +16,10 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(UserDto input)
+    public async Task<RegisterResponse> Register(UserDto input)
     {
         var result = await _service.RegisterAsync(input);
-
-        return !result.Succeeded ? new BadRequestObjectResult(result.Errors)
-            : StatusCode(201);
+        return result;
     }
 
     [HttpPost("login")]
