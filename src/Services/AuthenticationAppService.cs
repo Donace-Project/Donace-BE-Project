@@ -46,9 +46,16 @@ public class AuthenticationAppService : IAuthenticationAppService
             Email = input.Email,
             UserName = input.Email,
         };
-        var result = await _userManager.CreateAsync(user, input.Password);
+
+        output.Result = await _userManager.CreateAsync(user, input.Password);
+        if (!output.Result.Succeeded) return output;
+
         await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", user);
-        return result;
+
+        _user = await _userManager.FindByEmailAsync(input.Email);
+        output.Token = await CreateTokenAsync();
+        output.User = _mapper.Map<User, UserModel>(_user);
+        return output;
     }
 
     public async Task<LoginResponse> LoginAsync(UserDto input)
@@ -84,8 +91,10 @@ public class AuthenticationAppService : IAuthenticationAppService
         }
 
         output.Token = await CreateTokenAsync();
+        output.User = _mapper.Map<User, UserModel>(_user);
+
         await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", _user);
-        
+
         #endregion
 
         return output;
