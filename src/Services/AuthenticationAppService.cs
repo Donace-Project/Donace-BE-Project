@@ -50,7 +50,7 @@ public class AuthenticationAppService : IAuthenticationAppService
         output.Result = await _userManager.CreateAsync(user, input.Password);
         if (!output.Result.Succeeded) return output;
 
-        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", user);
+        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}:{input.Password}", user);
 
         _user = await _userManager.FindByEmailAsync(input.Email);
         output.Token = await CreateTokenAsync();
@@ -64,7 +64,7 @@ public class AuthenticationAppService : IAuthenticationAppService
 
         #region Check Redis
 
-        var user = await _iCacheService.GetDataByKeyAsync<User>($"{KeyCache.User}:{input.Email}");
+        var user = await _iCacheService.GetDataByKeyAsync<User>($"{KeyCache.User}:{input.Email}:{input.Password}");
         if (user.Result is not null)
         {
             _user = user.Result;
@@ -93,7 +93,7 @@ public class AuthenticationAppService : IAuthenticationAppService
         output.Token = await CreateTokenAsync();
         output.User = _mapper.Map<User, UserModel>(_user);
 
-        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}", _user);
+        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}:{input.Password}", _user);
 
         #endregion
 
