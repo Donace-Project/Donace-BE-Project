@@ -19,13 +19,13 @@ public class EventService : IEventService
     private readonly IEventRepository _repoEvent;
     private readonly ISectionRepository _repoSection;
     private readonly ICalendarRepository _repoCalendar;
-    private readonly ICacheService _iCacheService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IBackgroundJobClient _iBackgroundJobClient;
     private readonly ILogger<EventService> _iLogger;
     private readonly IUserProvider _iUserProvider;
     private readonly ICommonService _commonService;
+    private readonly ILocationService _locationService;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
@@ -35,18 +35,19 @@ public class EventService : IEventService
                         IBackgroundJobClient backgroundJobClient,
                         ILogger<EventService> logger,
                         IUserProvider userProvider,
-                        ICommonService commonService)
+                        ICommonService commonService,
+                        ILocationService locationService)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _repoSection = repoSection;
         _repoCalendar = repoCalendar;
-        _iCacheService = cacheService;
         _iBackgroundJobClient = backgroundJobClient;
         _iLogger = logger;
         _iUserProvider = userProvider;
         _commonService = commonService;
+        _locationService = locationService;
     }
 
     /// <summary>
@@ -59,25 +60,18 @@ public class EventService : IEventService
     {
         try
         {
-            var listStrCache = new List<string>();
             await IsValidCalendar(input.CalendarId);
 
             var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
             eventEntity.Cover = await _commonService.UpLoadImageAsync(input.Image, eventEntity.Id);
+            eventEntity.LocationCode = input.Long != null && input.Lat != null ?
+                                       _locationService.GetAreaAsync((double)input.Long, (double)input.Lat) :
+                                       "VietNam";
 
             var createdEvent = await _repoEvent.CreateAsync(eventEntity);
             await _unitOfWork.SaveChangeAsync();
 
-            var dataCache = await _iCacheService.GetDataByKeyAsync<List<string>>(KeyCache.CacheSuggestLocation);
-            if (dataCache.Result != null)
-            {
-                listStrCache.AddRange(dataCache.Result);
-            }
-
-            listStrCache.Add(input.AddressName);
-            await _iCacheService.SetDataAsync($"{KeyCache.CacheSuggestLocation}:{_iUserProvider.GetUserId()}", listStrCache);
             var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
-            await _iCacheService.SetDataSortedAsync($"{KeyCache.CacheEvent}:{result.CalendarId}",new List<EventFullOutput>() { result});
 
             return result;
         }   
@@ -111,23 +105,15 @@ public class EventService : IEventService
     /// <exception cref="FriendlyException"></exception>
     public async Task<EventFullOutput> GetDetailBySortedAsync(int sorted, Guid calendarId)
     {
-        var dataCache = await _iCacheService.GetListDataByScoreAsync($"{KeyCache.CacheEvent}:{calendarId}", sorted);
 
-        if(!dataCache.Any())
+        var output = await _repoEvent.GetDetailBySorted(sorted);
+
+        if (output is null)
         {
-            var output = await _repoEvent.GetDetailBySorted(sorted);
-
-            if(output is null)
-            {
-                throw new FriendlyException(string.Empty, $"Không tìm thấy event có sort: {sorted}");
-            }
-
-            await _iCacheService.GetListDataByScoreAsync($"{KeyCache.CacheEvent}:{calendarId}", output.Sorted);
-
-            return _mapper.Map<EventEntity, EventFullOutput>(output);
+            throw new FriendlyException(string.Empty, $"Không tìm thấy event có sort: {sorted}");
         }
 
-        return JsonConvert.DeserializeObject<EventFullOutput>(dataCache.FirstOrDefault());
+        return _mapper.Map<EventEntity, EventFullOutput>(output);
     }
 
     /// <summary>
@@ -162,9 +148,8 @@ public class EventService : IEventService
 
         _repoEvent.CancelAsync(foundEvent);
 
-        await Task.WhenAll(_iCacheService.RemoveItemDataBySortedAsync($"{KeyCache.CacheEvent}:{foundEvent.CalendarId}", foundEvent.Sorted),
-                           _repoSection.CancelSections(id));
-        
+        await _repoSection.CancelSections(id);
+
         await _unitOfWork.SaveChangeAsync();
     }
 
@@ -193,6 +178,26 @@ public class EventService : IEventService
         try
         {
             throw new FriendlyException();
+        }
+        catch(Exception ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Lấy Danh sách Event tại 3 thành Phố lớn: Hà Nội, đà nẵng, HCM
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public async Task<List<EventOutput>> GetListEventInLocationAsync(string location)
+    {
+        try
+        {
+            var events = await _repoEvent.GetListAsync(x => x.LocationCode == location);
+
+            return _mapper.Map<List<EventOutput>>(events);
         }
         catch(Exception ex)
         {

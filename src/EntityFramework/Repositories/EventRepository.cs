@@ -6,6 +6,7 @@ using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models.Event.Input;
 using EntityFramework.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Donace_BE_Project.EntityFramework.Repository;
 
@@ -50,5 +51,10 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
     {
         entity.IsEnable = false;
         _dbSet.Update(entity);
+    }
+
+    public async Task<List<Event>> GetListAsync(Expression<Func<Event, bool>> predicate)
+    {
+        return await _dbSet.Where(predicate).ToListAsync();
     }
 }

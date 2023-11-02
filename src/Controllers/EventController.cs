@@ -26,9 +26,9 @@ public class EventController : ControllerBase
     }
 
     [HttpPost()]
-    public Task<EventFullOutput> CreateAsync([FromForm]EventCreateInput input)
+    public async Task<EventFullOutput> CreateAsync([FromForm]EventCreateInput input)
     {
-        return _service.CreateAsync(input);
+        return await _service.CreateAsync(input);
     }
 
     [HttpGet("detail")]
@@ -38,14 +38,20 @@ public class EventController : ControllerBase
     }
 
     [HttpGet()]
-    public Task<PaginationOutput<EventOutput>> GetPaginationAsync([FromQuery] PaginationEventInput input)
+    public async Task<PaginationOutput<EventOutput>> GetPaginationAsync([FromQuery] PaginationEventInput input)
     {
-        return _service.GetPaginationAsync(input);
+        return await _service.GetPaginationAsync(input);
     }
 
     [HttpPut()]
     public Task UpdateAsync(EventUpdateInput input)
     {
         return _service.UpdateAsync(input);
+    }
+
+    [HttpGet("in")]
+    public async Task<List<EventOutput>> GetListEventInLocationAsync(string location)
+    {
+        return await _service.GetListEventInLocationAsync(location);
     }
 }

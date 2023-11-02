@@ -12,4 +12,5 @@ public interface IEventService
     Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input);
     Task UpdateAsync(EventUpdateInput input);
     Task<ResponseModel<EventsModelResponse>> GetListEventByCalendarAsync();
+    Task<List<EventOutput>> GetListEventInLocationAsync(string location);
 }

@@ -18,20 +18,17 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _iLogger;
     private readonly IUserRepository _iUserRepository;
     private readonly IUnitOfWork _iUnitOfWork;
-    private readonly ICacheService _iCacheService;
     public UserService(IUserProvider userProvider,
                        IMapper mapper,
                        ILogger<UserService> logger,
                        IUserRepository userRepository,
-                       IUnitOfWork unitOfWork,
-                       ICacheService iCacheService)
+                       IUnitOfWork unitOfWork)
     {
         _userProvider = userProvider;
         _mapper = mapper;
         _iLogger = logger;
         _iUserRepository = userRepository;
         _iUnitOfWork = unitOfWork;
-        _iCacheService = iCacheService;
     }
 
     public async Task<ResponseModel<UpdateUserModel>> UpdateProfileAsync(UpdateUserModel model)
@@ -42,26 +39,17 @@ public class UserService : IUserService
             var user = new User();
             var data = new User();
 
-            user = (await _iCacheService.GetDataByKeyAsync<User>($"{KeyCache.User}:{email}")).Result;
-            if (user != null )
+            user = await _iUserRepository.FindAsync(x => x.Email.Equals(email));
+            if (user == null)
             {
-                data = _mapper.Map(model, user);
+                _iLogger.LogWarning($"UserService.Warning: Not Find email of user: {email}");
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_UserService, $"Not Find email of user: {email}");
             }
-            else
-            {
-                user = await _iUserRepository.FindAsync(x => x.Email.Equals(email));
-                if (user == null)
-                {
-                    _iLogger.LogWarning($"UserService.Warning: Not Find email of user: {email}");
-                    throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_UserService, $"Not Find email of user: {email}");
-                }
-                data = _mapper.Map(model, user);
-            }            
+            data = _mapper.Map(model, user);
 
             _iUserRepository.Update(data);
             await _iUnitOfWork.SaveChangeCusAsync();
 
-            await _iCacheService.SetDataAsync($"{KeyCache.User}:{email}", data);
             return new ResponseModel<UpdateUserModel>(true, ResponseCode.Donace_BE_Project_CustomerService_Success, model, new());
         }
         catch(Exception ex )
@@ -77,19 +65,7 @@ public class UserService : IUserService
         {
             var email = _userProvider.GetEmailUser();
 
-            #region  Redis
-
-            var strResult = await _iCacheService.GetDataByKeyAsync<UserModel>($"{KeyCache.User}:{email}");
-
-            if( strResult.Result is not null)
-            {
-                return new ResponseModel<UserModel>(true, ResponseCode.Donace_BE_Project_CustomerService_Success, strResult.Result, new PageInfoModel());
-            }
-
-            #endregion
             var user = await _iUserRepository.FindAsync(x => x.Email.Equals(email));
-
-            await _iCacheService.SetDataAsync($"{KeyCache.User}:{email}", user);
 
             var result = _mapper.Map<UserModel>(user);
 

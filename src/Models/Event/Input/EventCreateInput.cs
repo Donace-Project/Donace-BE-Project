@@ -12,9 +12,9 @@ public class EventCreateInput
 
     public string AddressName { get; set; } = string.Empty;
 
-    public string Lat { get; set; } = string.Empty;
+    public float? Lat { get; set; }
 
-    public string Long { get; set; } = string.Empty;
+    public float? Long { get; set; }
 
     public int Capacity { get; set; }
 

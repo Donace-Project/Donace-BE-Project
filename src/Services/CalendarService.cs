@@ -21,15 +21,13 @@ public class CalendarService : ICalendarService
     private readonly IUnitOfWork _iUnitOfWork;
     private readonly IUserProvider _userProvider;
     private readonly IUserService _iUserService;
-    private readonly ICacheService _iCacheService;
     public CalendarService(ICalendarRepository iCalendarRepository,
                            ILogger<CalendarService> logger,
                            IMapper mapper,
                            IUnitOfWork unitOfWork,
                            IUserProvider userProvider,
                            ICalendarParticipationService calendarParticipationService,
-                           IUserService userService,
-                           ICacheService iCacheService)
+                           IUserService userService)
     {
         _iCalendarRepository = iCalendarRepository;
         _iLogger = logger;
@@ -38,7 +36,6 @@ public class CalendarService : ICalendarService
         _userProvider = userProvider;
         _iCalendarParticipationService = calendarParticipationService;
         _iUserService = userService;
-        _iCacheService = iCacheService;
     }
 
     /// <summary>
@@ -69,8 +66,6 @@ public class CalendarService : ICalendarService
             await _iCalendarParticipationService.CreateAsync(calendarParticipation);
 
             var dataOut = _iMapper.Map<Calendar, CalendarResponseModel>(resultCalendar);
-
-            await _iCacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", new List<CalendarResponseModel>() { dataOut});
 
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataOut, new());
         }
@@ -124,22 +119,6 @@ public class CalendarService : ICalendarService
             var result = new List<GetListCalendarModel>();
             var userId = _userProvider.GetUserId();
 
-            #region Get Redis
-
-            var strResult = await _iCacheService.GetListDataByKeyPagingAsync<GetListCalendarModel>($"{KeyCache.Calendar}:{userId}", 
-                                                                                                   input.PageNumber, 
-                                                                                                   input.PageSize);
-
-            if(strResult.Code == "200")
-            {
-                result = strResult.Result;
-                return new ResponseModel<List<GetListCalendarModel>>(true, "200", result);
-            }
-
-            #endregion
-
-            #region Get DB
-
             var listcalendar = await _iCalendarRepository.GetListCalendarByIdUser(userId, 
                                                                                   input.PageNumber, 
                                                                                   input.PageSize);
@@ -152,9 +131,6 @@ public class CalendarService : ICalendarService
             var totalCount = await _iCalendarRepository.CountAsync(x => x.CreatorId.Equals(userId));
             result = _iMapper.Map<List<GetListCalendarModel>>(listcalendar);
 
-            await _iCacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", 
-                                                       _iMapper.Map<List<CalendarResponseModel>>(listcalendar));
-            #endregion
             return new ResponseModel<List<GetListCalendarModel>>(true, 
                                                                  ResponseCode.Donace_BE_Project_CalendarService_Success, 
                                                                  result, 
@@ -179,31 +155,20 @@ public class CalendarService : ICalendarService
         try
         {
             var userId = _userProvider.GetUserId();
+            var ids = await _iCalendarParticipationService.GetListIdCalendarByUserIdAsync();
 
-            var dataCache = await _iCacheService.GetListDataByKeyPagingAsync<GetListCalendarModel>($"{KeyCache.CalendarSubcribed}:{userId}", input.PageNumber, input.PageSize);
-
-            if (!dataCache.Result.Any()) 
+            if (!ids.Result.Any())
             {
-                var ids = await _iCalendarParticipationService.GetListIdCalendarByUserIdAsync();
-
-                if (!ids.Result.Any())
-                {
-                    return new ResponseModel<List<GetListCalendarModel>>(true, "200", new List<GetListCalendarModel>(), new PageInfoModel());
-                }
-
-                var dataDb = await _iCalendarRepository.GetListCalendarPagingByIdsAsync(ids.Result, input.PageNumber, input.PageSize);                
-                
-                var total = await _iCalendarRepository.CountAsync(x => ids.Result.Contains(x.Id));
-
-                var data = _iMapper.Map<List<GetListCalendarModel>>(dataDb);
-
-                await _iCacheService.SetDataSortedAsync($"{KeyCache.CalendarSubcribed}:{userId}", data);
-
-                return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
+                return new ResponseModel<List<GetListCalendarModel>>(true, "200", new List<GetListCalendarModel>(), new PageInfoModel());
             }
 
+            var dataDb = await _iCalendarRepository.GetListCalendarPagingByIdsAsync(ids.Result, input.PageNumber, input.PageSize);
 
-            return dataCache;
+            var total = await _iCalendarRepository.CountAsync(x => ids.Result.Contains(x.Id));
+
+            var data = _iMapper.Map<List<GetListCalendarModel>>(dataDb);
+
+            return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
         }
         catch(Exception ex)
         {
@@ -259,7 +224,6 @@ public class CalendarService : ICalendarService
             await _iUnitOfWork.SaveChangeAsync();
 
             var dataout = _iMapper.Map<CalendarUpdateModel, CalendarResponseModel>(model);
-            await _iCacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{_userProvider.GetUserId()}", dataout.Sorted, dataout);
 
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataout, new());
         }
@@ -284,28 +248,7 @@ public class CalendarService : ICalendarService
             {
                 UserId = userId,
                 CalendarId = input.CalendarId
-            }, true);
-
-            #region redis
-
-            var calendars = await _iCacheService.GetListDataByScoreAsync($"{KeyCache.Calendar}:{input.CreatorId}", input.Sorted);
-            var calendarUserJoin = new CalendarResponseModel();
-
-            if (!calendars.Any())
-            {
-                var calendarDb = await _iCalendarRepository.FindAsync(x => x.Id == input.CalendarId);
-                calendarUserJoin = _iMapper.Map<CalendarResponseModel>(calendarUserJoin);                
-            }
-            else
-            {
-                calendarUserJoin = JsonConvert.DeserializeObject<CalendarResponseModel>(calendars.FirstOrDefault());
-            }
-
-            await _iCacheService.SetDataSortedAsync($"{KeyCache.CalendarSubcribed}:{userId}", 
-                                                    new List<CalendarResponseModel> { calendarUserJoin});
-
-
-            #endregion
+            }, true);            
         }
         catch (Exception ex)
         {
