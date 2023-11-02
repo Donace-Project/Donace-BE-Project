@@ -13,5 +13,5 @@ public class ErrorDetails
         return JsonSerializer.Serialize(this);
     }
 
-    public IDictionary Data {  get; set; }
+    public IDictionary Data { get; set; } = new Dictionary<string, object>();
 }

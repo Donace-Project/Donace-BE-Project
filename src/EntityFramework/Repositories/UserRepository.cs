@@ -16,7 +16,7 @@ namespace EntityFramework.Repository
 
         public async Task<User?> FindAsync(Expression<Func<User, bool>> predicate)
         {
-            var user = await _dbContext.Users.FindAsync(predicate);
+            var user = await _dbContext.Users.Where(predicate).FirstOrDefaultAsync();
             return user;
         }
 
