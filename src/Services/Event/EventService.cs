@@ -88,7 +88,9 @@ public class EventService : IEventService
     /// <returns></returns>
     public async Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input)
     {
-        var output = await _repoEvent.GetPaginationAsync(input);
+        var userId = _iUserProvider.GetUserId();
+
+        var output = await _repoEvent.GetPaginationAsync(input, userId);
 
         return new()
         {
