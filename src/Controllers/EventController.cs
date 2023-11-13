@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Donace_BE_Project.Controllers;
 
-//[Authorize]
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class EventController : ControllerBase
@@ -26,7 +26,7 @@ public class EventController : ControllerBase
     }
 
     [HttpPost()]
-    public async Task<EventFullOutput> CreateAsync([FromForm]EventCreateInput input)
+    public async Task<EventFullOutput> CreateAsync([FromBody] EventCreateInput input)
     {
         return await _service.CreateAsync(input);
     }

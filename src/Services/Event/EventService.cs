@@ -10,7 +10,6 @@ using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Shared.Pagination;
 using Hangfire;
-using Newtonsoft.Json;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
 
@@ -63,7 +62,6 @@ public class EventService : IEventService
             await IsValidCalendar(input.CalendarId);
 
             var eventEntity = _mapper.Map<EventCreateInput, EventEntity>(input);
-            eventEntity.Cover = await _commonService.UpLoadImageAsync(input.Image, eventEntity.Id);
             eventEntity.LocationCode = input.Long != null && input.Lat != null ?
                                        _locationService.GetAreaAsync((double)input.Long, (double)input.Lat) :
                                        "VietNam";
