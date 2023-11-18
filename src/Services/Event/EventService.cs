@@ -271,4 +271,19 @@ public class EventService : IEventService
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
         }
     }
+
+    public async Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id)
+    {
+        try
+        {
+            var events = await _repoEvent.GetListAsync(x => x.CalendarId == id);
+
+            return events.Any() ? _mapper.Map<List<EventFullOutput>>(events.OrderByDescending(x => x.StartDate)) : new List<EventFullOutput>();
+        }
+        catch (FriendlyException ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}", _iUserProvider.GetUserId());
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
+        }
+    }
 }

@@ -66,4 +66,10 @@ public class EventController : ControllerBase
     {
         return await _service.GetListEventByUserAsync();
     }
+
+    [HttpGet("list-event-by-calendar-{id}")]
+    public async Task<List<EventFullOutput>> ListEventByCalendarAsync(Guid id)
+    {
+        return await _service.GetListEventByCalendarAsync(id);
+    }
 }
