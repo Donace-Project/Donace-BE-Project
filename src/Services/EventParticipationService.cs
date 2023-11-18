@@ -45,7 +45,7 @@ namespace Donace_BE_Project.Services
             }
             catch (FriendlyException ex)
             {
-                _logger.LogError($"EventParticipationService.Exception: {ex.Message}", JsonConvert.SerializeObject(req));
+                _logger.LogError($"EventParticipationService.Exception: {ex.Message}", JsonConvert.SerializeObject(userId));
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventParticipationService, ex.Message);
             }
         }
