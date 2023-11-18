@@ -88,7 +88,7 @@ public class CalendarService : ICalendarService
         {
             var calendar = await _iCalendarRepository.GetByIdAsync(Id);
 
-            _iCalendarRepository.Delete(calendar,true);
+            _iCalendarRepository.Delete(calendar, true);
             await _iUnitOfWork.SaveChangeAsync();
 
             var calendarParticipation = await _iCalendarParticipationService.DeleteByCalendarUserIdAsync(new CalendarParticipationGetBycalendarUserIdModel
@@ -119,8 +119,8 @@ public class CalendarService : ICalendarService
             var result = new List<GetListCalendarModel>();
             var userId = _userProvider.GetUserId();
 
-            var listcalendar = await _iCalendarRepository.GetListCalendarByIdUser(userId, 
-                                                                                  input.PageNumber, 
+            var listcalendar = await _iCalendarRepository.GetListCalendarByIdUser(userId,
+                                                                                  input.PageNumber,
                                                                                   input.PageSize);
 
             if (!listcalendar.Any())
@@ -131,17 +131,23 @@ public class CalendarService : ICalendarService
             var totalCount = await _iCalendarRepository.CountAsync(x => x.CreatorId.Equals(userId));
             result = _iMapper.Map<List<GetListCalendarModel>>(listcalendar);
 
-            return new ResponseModel<List<GetListCalendarModel>>(true, 
-                                                                 ResponseCode.Donace_BE_Project_CalendarService_Success, 
-                                                                 result, 
+            return new ResponseModel<List<GetListCalendarModel>>(true,
+                                                                 ResponseCode.Donace_BE_Project_CalendarService_Success,
+                                                                 result,
                                                                  new(totalCount, input.PageNumber, input.PageSize));
-            
+
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             _iLogger.LogError($"CalendarService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(input)}");
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
         }
+    }
+
+    public async Task<CalendarResponseModel> GetByIdAsync(Guid id)
+    {
+        var calendar = await _iCalendarRepository.GetByIdAsync(id);
+        return _iMapper.Map<CalendarResponseModel>(calendar);
     }
 
     /// <summary>
@@ -170,7 +176,7 @@ public class CalendarService : ICalendarService
 
             return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _iLogger.LogError($"CalendarService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(input)}");
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
@@ -193,13 +199,13 @@ public class CalendarService : ICalendarService
 
             if (!listUserId.Result.Any())
             {
-                return new ResponseModel<List<GetListUserInCalendarModel>>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, new List<GetListUserInCalendarModel>(), new(0,input.PageNumber, input.PageSize));
+                return new ResponseModel<List<GetListUserInCalendarModel>>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, new List<GetListUserInCalendarModel>(), new(0, input.PageNumber, input.PageSize));
             }
 
             var listUser = await _iUserService.ListUserAsync(listUserId.Result);
             return new ResponseModel<List<GetListUserInCalendarModel>>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, listUser.Result, new(total.Result, input.PageNumber, input.PageSize));
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _iLogger.LogError($"CalendarService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(input)}");
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
@@ -248,7 +254,7 @@ public class CalendarService : ICalendarService
             {
                 UserId = userId,
                 CalendarId = input.CalendarId
-            }, true);            
+            }, true);
         }
         catch (Exception ex)
         {
