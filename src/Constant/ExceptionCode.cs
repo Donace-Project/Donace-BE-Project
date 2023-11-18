@@ -30,5 +30,7 @@
 
         public const string Donace_BE_Project_Bad_Request_LocationService = "Donace_BE_Project_LocationService:400";
 
+        public const string Donace_BE_Project_Bad_Request_EventParticipationService = "Donace_BE_Project_EventParticipationService:400";
+
     }
 }

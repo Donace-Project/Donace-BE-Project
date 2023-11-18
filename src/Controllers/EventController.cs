@@ -54,4 +54,16 @@ public class EventController : ControllerBase
     {
         return await _service.GetListEventInLocationAsync(location);
     }
+
+    [HttpPost("user-join")]
+    public async Task UserJoinEventAsync(UserJoinEventModel req)
+    {
+        await _service.UserJoinEventAsync(req);
+    }
+
+    [HttpGet("list-event-by-user")]
+    public async Task<List<EventFullOutput>> ListEventByUserAsync()
+    {
+        return await _service.GetListEventByUserAsync();
+    }
 }

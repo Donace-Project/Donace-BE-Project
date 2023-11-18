@@ -1,4 +1,5 @@
-﻿using Donace_BE_Project.Models.Cache;
+﻿using Donace_BE_Project.Enums.Entity;
+using Donace_BE_Project.Models.Cache;
 
 namespace Donace_BE_Project.Models.Event.Output;
 
@@ -44,5 +45,16 @@ public class EventFullOutput : CacheSortedBaseModel
 
 public class EventsModelResponse
 {
+    public string Name { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public EventParticipationStatus Status
+    {
+        get
+        {
+            return StartDate < DateTime.Now ?
+                        EventParticipationStatus.UpComing :
+                        EventParticipationStatus.Past
 
+        }
+    }
 }

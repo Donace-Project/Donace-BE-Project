@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Donace_BE_Project.Entities.Calendar;
+using Donace_BE_Project.Entities.Event;
 using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.Extensions;
 using Donace_BE_Project.Models.Calendar;
 using Donace_BE_Project.Models.CalendarParticipation;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
+using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Models.User;
 
 namespace Application.ProfileAutoMapper
@@ -48,6 +50,10 @@ namespace Application.ProfileAutoMapper
             CreateMap<CalendarParticipation, CalendarParticipationModel>().ReverseMap();
             CreateMap<CalendarParticipation, CalendarParticipationGetByCalendarIdModel>().ReverseMap();
             #endregion
-        }       
+
+            #region EventParticipation
+            CreateMap<EventParticipation, EventParticipationModel>().ReverseMap();
+            #endregion
+        }
     }
 }

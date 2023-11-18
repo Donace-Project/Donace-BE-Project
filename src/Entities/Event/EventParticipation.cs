@@ -11,6 +11,4 @@ public class EventParticipation : BaseEntity
 
     [Required]
     public Guid EventId { get; set; }
-
-    public EventParticipationStatus Status { get; set; }
 }

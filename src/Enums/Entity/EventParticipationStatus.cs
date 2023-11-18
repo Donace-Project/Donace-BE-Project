@@ -2,8 +2,5 @@
 
 public enum EventParticipationStatus
 {
-    NotGoing = 0,
-    Going = 1,
-    Invited = 2,
-    Checked = 3,
+    UpComing, Past
 }

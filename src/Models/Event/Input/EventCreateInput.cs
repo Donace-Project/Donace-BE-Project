@@ -54,3 +54,10 @@ public class GetListEventCalendarModel : RequestBaseModel
     public Guid CalendarId { get; set; }
     public bool IsUpcoming { get; set; }    
 }
+
+public class UserJoinEventModel
+{
+    public Guid UserId { get; set; }
+    public Guid? CalendarId { get; set; }
+    public Guid EventId { get; set; }
+}
