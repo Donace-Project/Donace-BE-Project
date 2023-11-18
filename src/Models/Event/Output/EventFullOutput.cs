@@ -53,7 +53,7 @@ public class EventsModelResponse
         {
             return StartDate < DateTime.Now ?
                         EventParticipationStatus.UpComing :
-                        EventParticipationStatus.Past
+                        EventParticipationStatus.Past;
 
         }
     }
