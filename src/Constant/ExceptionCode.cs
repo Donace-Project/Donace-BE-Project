@@ -32,5 +32,7 @@
 
         public const string Donace_BE_Project_Bad_Request_EventParticipationService = "Donace_BE_Project_EventParticipationService:400";
 
+        public const string Donace_BE_Project_Bad_Request_RabbitMQService = "Donace_BE_Project_RabbitMQService:400";
+
     }
 }
