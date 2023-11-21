@@ -276,8 +276,8 @@ public class EventService : IEventService
     {
         try
         {
-            var events = await _repoEvent.GetListAsync(x => x.CalendarId == id &&
-                                                            isNew ? x.EndDate >= DateTime.Now : x.EndDate < DateTime.Now);
+            var events = isNew ? await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.StartDate >= DateTime.Now) :
+                                 await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.StartDate < DateTime.Now);
 
             return events.Any() ? _mapper.Map<List<EventFullOutput>>(events.OrderByDescending(x => x.StartDate)) : new List<EventFullOutput>();
         }
