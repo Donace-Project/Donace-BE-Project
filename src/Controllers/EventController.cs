@@ -62,14 +62,14 @@ public class EventController : ControllerBase
     }
 
     [HttpGet("list-event-by-user")]
-    public async Task<List<EventFullOutput>> ListEventByUserAsync()
+    public async Task<List<EventFullOutput>> ListEventByUserAsync(bool IsNew = true)
     {
         return await _service.GetListEventByUserAsync();
     }
 
-    [HttpGet("list-event-by-calendar-{id}")]
-    public async Task<List<EventFullOutput>> ListEventByCalendarAsync(Guid id)
+    [HttpGet("list-event-by-calendar-{id}-{isNew}")]
+    public async Task<List<EventFullOutput>> ListEventByCalendarAsync(Guid id, bool isNew = true)
     {
-        return await _service.GetListEventByCalendarAsync(id);
+        return await _service.GetListEventByCalendarAsync(id, isNew);
     }
 }

@@ -272,11 +272,12 @@ public class EventService : IEventService
         }
     }
 
-    public async Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id)
+    public async Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew)
     {
         try
         {
-            var events = await _repoEvent.GetListAsync(x => x.CalendarId == id);
+            var events = await _repoEvent.GetListAsync(x => x.CalendarId == id &&
+                                                            isNew ? x.EndDate >= DateTime.Now : x.EndDate < DateTime.Now);
 
             return events.Any() ? _mapper.Map<List<EventFullOutput>>(events.OrderByDescending(x => x.StartDate)) : new List<EventFullOutput>();
         }
