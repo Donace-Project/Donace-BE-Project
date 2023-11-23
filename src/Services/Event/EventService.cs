@@ -6,8 +6,10 @@ using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models;
+using Donace_BE_Project.Models.CalendarParticipation;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
+using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Shared.Pagination;
 using Hangfire;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
@@ -25,6 +27,8 @@ public class EventService : IEventService
     private readonly IUserProvider _iUserProvider;
     private readonly ICommonService _commonService;
     private readonly ILocationService _locationService;
+    private readonly ICalendarParticipationService _calendarParticipationService;
+    private readonly IEventParticipationService _eventParticipationService;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
@@ -35,7 +39,9 @@ public class EventService : IEventService
                         ILogger<EventService> logger,
                         IUserProvider userProvider,
                         ICommonService commonService,
-                        ILocationService locationService)
+                        ILocationService locationService,
+                        ICalendarParticipationService calendarParticipationService,
+                        IEventParticipationService eventParticipationService)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -47,6 +53,8 @@ public class EventService : IEventService
         _iUserProvider = userProvider;
         _commonService = commonService;
         _locationService = locationService;
+        _calendarParticipationService = calendarParticipationService;
+        _eventParticipationService = eventParticipationService;
     }
 
     /// <summary>
@@ -213,6 +221,80 @@ public class EventService : IEventService
         catch(Exception ex)
         {
             _iLogger.LogError($"EventService.Exception: {ex.Message}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
+        }
+    }
+
+    public async Task UserJoinEventAsync(UserJoinEventModel req)
+    {
+        try
+        {
+            var events = await _repoEvent.GetByIdAsync(req.UserId);
+
+            if(events is null)
+            {
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "không tìm thấy Event");
+            }
+
+            if(req.CalendarId is null)
+            {
+                await _calendarParticipationService.CreateAsync(new CalendarParticipationModel
+                {
+                    CalendarId = events.CalendarId,
+                    UserId = req.UserId,
+                });
+            }
+
+            await _eventParticipationService.CreateAsync(new EventParticipationModel
+            {
+                UserId = _iUserProvider.GetUserId(),
+                EventId = events.Id
+            });
+        }
+        catch (Exception ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
+        }
+    }
+
+    public async Task<List<EventFullOutput>> GetListEventByUserAsync()
+    {
+        try
+        {
+            var idUser = _iUserProvider.GetUserId();
+            var myEvent = await _repoEvent.GetListAsync(x => x.CreatorId == idUser);
+            var subEventIds = await _eventParticipationService.ListIdEventSubAsync(idUser);
+
+            if (!subEventIds.Any())
+            {
+                return _mapper.Map<List<EventFullOutput>>(myEvent.OrderByDescending(x => x.StartDate));
+            }
+
+            var subEvents = await _repoEvent.GetListAsync(x => subEventIds.Contains(x.Id));
+            myEvent.AddRange(subEvents);
+
+            return _mapper.Map<List<EventFullOutput>>(myEvent.OrderByDescending(x => x.StartDate));
+        }
+        catch (FriendlyException ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}", _iUserProvider.GetUserId());
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
+        }
+    }
+
+    public async Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew)
+    {
+        try
+        {
+            var events = isNew ? await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.StartDate >= DateTime.Now) :
+                                 await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.StartDate < DateTime.Now);
+
+            return events.Any() ? _mapper.Map<List<EventFullOutput>>(events.OrderByDescending(x => x.StartDate)) : new List<EventFullOutput>();
+        }
+        catch (FriendlyException ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}", _iUserProvider.GetUserId());
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
         }
     }

@@ -60,4 +60,22 @@ public class EventController : ControllerBase
     {
         return await _service.GetListEventInLocationAsync(location);
     }
+
+    [HttpPost("user-join")]
+    public async Task UserJoinEventAsync(UserJoinEventModel req)
+    {
+        await _service.UserJoinEventAsync(req);
+    }
+
+    [HttpGet("list-event-by-user")]
+    public async Task<List<EventFullOutput>> ListEventByUserAsync(bool IsNew = true)
+    {
+        return await _service.GetListEventByUserAsync();
+    }
+
+    [HttpGet("list-event-by-calendar-{id}-{isNew}")]
+    public async Task<List<EventFullOutput>> ListEventByCalendarAsync(Guid id, bool isNew = true)
+    {
+        return await _service.GetListEventByCalendarAsync(id, isNew);
+    }
 }

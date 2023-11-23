@@ -54,6 +54,7 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<ISectionRepository, SectionRepository>();
             services.AddScoped<ICalendarRepository, CalendarRepository>();
             services.AddScoped<ICalendarParticipationRepository, CalendarParticipationRepository>();
+            services.AddScoped<IEventParticipationRepository, EventParticipationRepository>();
 
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<AppUserManager, AppUserManager>();
@@ -65,6 +66,7 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<ICacheService, CacheService>();
             services.AddTransient<ICommonService, CommonService>();
             services.AddTransient<ILocationService, LocationService>();
+            services.AddTransient<IEventParticipationService, EventParticipationService>();
 
             return services;
         }
