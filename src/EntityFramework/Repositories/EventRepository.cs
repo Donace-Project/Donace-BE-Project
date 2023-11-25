@@ -48,6 +48,13 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
             .FirstOrDefaultAsync(z => z.Sorted == sorted);
     }
 
+    public Task<Event?> GetDetailByIdAsync(Guid id)
+    {
+        return _dbSet
+            .Include(z => z.Sections)
+            .FirstOrDefaultAsync(z => z.Id == id);
+    }
+
     public void CancelAsync(Event entity)
     {
         entity.IsEnable = false;

@@ -113,12 +113,23 @@ public class EventService : IEventService
     /// <exception cref="FriendlyException"></exception>
     public async Task<EventFullOutput> GetDetailBySortedAsync(int sorted, Guid calendarId)
     {
-
         var output = await _repoEvent.GetDetailBySorted(sorted);
 
         if (output is null)
         {
             throw new FriendlyException(string.Empty, $"Không tìm thấy event có sort: {sorted}");
+        }
+
+        return _mapper.Map<EventEntity, EventFullOutput>(output);
+    }
+
+    public async Task<EventFullOutput> GetDetailByIdAsync(Guid id)
+    {
+        var output = await _repoEvent.GetByIdAsync(id);
+
+        if (output is null)
+        {
+            throw new FriendlyException(string.Empty, $"Không tìm thấy event");
         }
 
         return _mapper.Map<EventEntity, EventFullOutput>(output);

@@ -31,10 +31,16 @@ public class EventController : ControllerBase
         return await _service.CreateAsync(input);
     }
 
-    [HttpGet("detail")]
-    public async Task<EventFullOutput> GetDetailById(int sorted, Guid calendarId)
+    [HttpGet("detail-by-sorted")]
+    public async Task<EventFullOutput> GetDetailBySorted(int sorted, Guid calendarId)
     {
         return await _service.GetDetailBySortedAsync(sorted, calendarId);
+    }
+
+    [HttpGet("detail-by-id")]
+    public async Task<EventFullOutput> GetDetailById(Guid id)
+    {
+        return await _service.GetDetailByIdAsync(id);
     }
 
     [HttpGet()]
