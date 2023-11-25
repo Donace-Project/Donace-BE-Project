@@ -1,23 +1,24 @@
-﻿using Donace_BE_Project.Constant;
+﻿using Azure;
+using Donace_BE_Project.Constant;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Services;
-using Elasticsearch.Net;
-using Microsoft.AspNetCore.Connections;
-using Microsoft.EntityFrameworkCore.Metadata;
+using Nest;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using System.Text;
+using System.Threading.Channels;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Donace_BE_Project.Services
 {
     public class RabbitMQService : BackgroundService, IRabbitMQService
     {
         private readonly ILogger<RabbitMQService> _logger;
-        private readonly RabbitMQ.Client.IConnection _connection;
+        private readonly IConnection _connection;
         private readonly ConnectionFactory _connectionFactory;
-        private readonly Microsoft.EntityFrameworkCore.Metadata.IModel _channel;
-        private readonly Dictionary<string, Func<string, string>> _queueHandler;
+        private readonly IModel _channel;
         private readonly IConfiguration _configuration;
-
         public RabbitMQService(ILogger<RabbitMQService> logger,
                                IConfiguration configuration)
         {
@@ -31,42 +32,48 @@ namespace Donace_BE_Project.Services
                 Password = _configuration.GetSection("RabbitMQ").GetValue<string>("Password"),
             };
             _connection = _connectionFactory.CreateConnection();
-            _channel = (Microsoft.EntityFrameworkCore.Metadata.IModel?)_connection.CreateModel();
+            _channel = _connection.CreateModel();
+        }
 
-            _queueHandler = new Dictionary<string, Func<string, string>>
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            var factory = new ConnectionFactory()
             {
-                {"donace_getdata", ProcessQueue1 }
+                HostName = _configuration.GetSection("RabbitMQ").GetValue<string>("Host"),
+                Port = _configuration.GetSection("RabbitMQ").GetValue<int>("Port"),
+                UserName = _configuration.GetSection("RabbitMQ").GetValue<string>("Username"),
+                Password = _configuration.GetSection("RabbitMQ").GetValue<string>("Password"),
             };
-        }
 
-        private string ProcessQueue1(string message)
-        {
-            // Xử lý message từ Queue 1 và trả về response
-            return $"Processed Queue 1 message: {message}";
-        }
+            
+            using var connection = factory.CreateConnection();
 
-        public async Task SubReplyAsync(string message)
-        {
-            try
+            using var channel = connection.CreateModel();
+
+            channel.ExchangeDeclare(exchange: "topic_test", type: ExchangeType.Topic);
+            channel.QueueDeclare("request-queue", exclusive: false);
+
+            var consumer = new EventingBasicConsumer(channel);
+
+            consumer.Received += (model, ea) =>
             {
+                Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId}");
 
-            }
-            catch(Exception ex)
-            {
+                var replyMessage = $"This is your reply: {ea.BasicProperties.CorrelationId}";
 
-            }
-        }
+                var body = Encoding.UTF8.GetBytes(replyMessage);
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            try
+                channel.BasicPublish("", ea.BasicProperties.ReplyTo, null, body);
+
+                Console.WriteLine(replyMessage);
+            };
+
+            channel.BasicConsume(queue: "request-queue", autoAck: true, consumer: consumer);
+
+            while (!stoppingToken.IsCancellationRequested)
             {
-                throw new Exception();
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError($"RabbitMQService.ExecuteAsync.Exception: {ex.Message}");
-                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_RabbitMQService, ex.Message);
+                await Task.Delay(1000, stoppingToken); // Delay để cho BackgroundService chạy liên tục
             }
         }
     }

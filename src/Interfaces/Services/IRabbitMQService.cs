@@ -2,6 +2,5 @@
 {
     public interface IRabbitMQService
     {
-        Task SubReplyAsync(string message);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Donace_BE_Project.Extensions;
+using Donace_BE_Project.Services;
 using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.ConfigureCustomerSqlContext(_configuration);
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJwt(_configuration);
 builder.Services.RegisterAppServices(_configuration);
+builder.Services.AddHostedService<RabbitMQService>();
 
 var app = builder.Build();
 app.UseCors(builder => builder
@@ -36,7 +38,6 @@ if (app.Environment.IsDevelopment())
 
 // Doashboard management queue Hangfire
 app.UseHangfireDashboard();
-
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

@@ -218,7 +218,7 @@ public class EventService : IEventService
     {
         try
         {
-            var events = await _repoEvent.GetByIdAsync(req.UserId);
+            var events = await _repoEvent.GetByIdAsync(req.EventId);
 
             if(events is null)
             {
