@@ -355,7 +355,20 @@ public class EventService : IEventService
             }
 
             var listEventSubs = await _repoEvent.GetListAsync(x => listIdEventStatus.ContainsKey(x.Id));
-            return listEventSubs.Any() ? _mapper.Map<List<EventFullOutput>>(listEventSubs) : new List<EventFullOutput>();
+            var resultSubs = _mapper.Map<List<EventFullOutput>>(listEventSubs);
+
+            foreach(var item in resultSubs)
+            {
+                item.IsHost = false;
+
+                var statusEnum = listIdEventStatus.Where(x => x.Key == item.Id).Select(x => x.Value).First();
+
+                item.Status = statusEnum == EventParticipationStatus.Approval ? "Chờ Xác Nhận"
+                           : statusEnum == EventParticipationStatus.NotGoing ? "Không Tham Gia"
+                           : statusEnum == EventParticipationStatus.Going ? "Đã Tham Gia"
+                           : "Đã CheckIn";
+            }
+            return resultSubs;
         }
         catch (FriendlyException ex)
         {
