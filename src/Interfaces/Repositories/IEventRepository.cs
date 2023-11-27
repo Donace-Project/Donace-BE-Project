@@ -6,7 +6,7 @@ namespace Donace_BE_Project.Interfaces.Repositories;
 
 public interface IEventRepository : IRepositoryBase<Event>
 {
-    Task<(int TotalCount, List<Event> Items)> GetPaginationAsync(PaginationEventInput input, Guid userId);
+    Task<List<Event>> GetPaginationAsync(PaginationEventInput input, Guid userId);
     Task<Event?> GetDetailByIdAsync(Guid id);
     Task<Event?> GetDetailBySorted(int sorted);
     void CancelAsync(Event entity);

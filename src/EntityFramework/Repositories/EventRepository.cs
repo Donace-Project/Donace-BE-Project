@@ -27,18 +27,14 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
         return base.CreateAsync(entity);
     }
 
-    public async Task<(int TotalCount, List<Event> Items)> GetPaginationAsync(PaginationEventInput input, Guid userId)
+    public async Task<List<Event>> GetPaginationAsync(PaginationEventInput input, Guid userId)
     {
-        var query = _dbSet
-            .Where(z => input.FromDate <= z.StartDate
-                && input.ToDate >= z.EndDate)
-            .Where(z => z.IsEnable == true)
-            .Where(x => x.CreatorId == userId)
-            .GetPagination(input.PageNumber, input.PageSize);
+        var query = input.IsNew == null ? await _dbSet.Where(x => x.IsDeleted == false && x.CreatorId == userId).ToListAsync() :
+            input.IsNew.Value ?
+                        await _dbSet.Where(x => x.EndDate >= DateTime.Now && x.IsDeleted == false && x.CreatorId == userId).ToListAsync() :
+                        await _dbSet.Where(x => x.EndDate < DateTime.Now && x.IsDeleted == false && x.CreatorId == userId).ToListAsync();
 
-        var totalCount = await query.CountAsync();
-        var results = await query.ToListAsync();
-        return new(totalCount, results);
+        return query;
     }
 
     public Task<Event?> GetDetailBySorted(int sorted)

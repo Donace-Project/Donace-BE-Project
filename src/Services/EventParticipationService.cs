@@ -38,6 +38,11 @@ namespace Donace_BE_Project.Services
             }
         }
 
+        public async Task<Dictionary<Guid, EventParticipationStatus>> GetAllIdEventUserJoinAsync(Guid userId)
+        {
+            return await _eventParticipationRepository.GetAllIdEventUserJoinAsync(userId);
+        }
+
         public async Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventSubAsync(Guid userId, bool isNew)
         {
             try

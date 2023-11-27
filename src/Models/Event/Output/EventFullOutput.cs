@@ -44,7 +44,7 @@ public class EventFullOutput : CacheSortedBaseModel
 
     public bool IsHost { get; set; } = true;
 
-    public string status { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
 }
 
 public class EventsModelResponse

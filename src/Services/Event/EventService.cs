@@ -99,12 +99,43 @@ public class EventService : IEventService
     {
         var userId = _iUserProvider.GetUserId();
 
+        // List Event của user tạo
         var output = await _repoEvent.GetPaginationAsync(input, userId);
+
+        // List EventId của user Join
+        var listIdEventSubs = input.IsNew == null ?
+                                await _eventParticipationService.GetAllIdEventUserJoinAsync(userId) :
+                                await _eventParticipationService.ListIdEventSubAsync(userId, input.IsNew.Value);
+
+        var result = _mapper.Map<List<EventEntity>, List<EventOutput>>(output.OrderByDescending(x => x.StartDate).ToList());
+        if (!listIdEventSubs.Any())
+        {
+            return new()
+            {
+                TotalCount = 0,
+                Items = result,
+            };
+        }
+
+        var listEventSubs = await _repoEvent.GetListAsync(x => listIdEventSubs.ContainsKey(x.Id));
+        var resultSub = _mapper.Map<List<EventOutput>>(listEventSubs);
+
+        foreach(var item in resultSub)
+        {
+            item.IsHost = true;
+
+            var statusEnum = listIdEventSubs.Where(x => x.Key == item.Id).Select(x => x.Value).First();
+
+            item.Status = statusEnum == EventParticipationStatus.Approval ? "Chờ Xác Nhận"
+                           : statusEnum == EventParticipationStatus.NotGoing ? "Không Tham Gia"
+                           : statusEnum == EventParticipationStatus.Going ? "Đã Tham Gia"
+                           : "Đã CheckIn";
+        }
 
         return new()
         {
-            TotalCount = output.TotalCount,
-            Items = _mapper.Map<List<EventEntity>, List<EventOutput>>(output.Items),
+            TotalCount = 0,
+            Items = _mapper.Map<List<EventEntity>, List<EventOutput>>(output.OrderByDescending(x => x.StartDate).ToList()),
         };
     }
 
@@ -286,7 +317,7 @@ public class EventService : IEventService
 
                 var statusEnum = subEventIds.Where(x => x.Key == item.Id).Select(x => x.Value).First();
 
-                item.status = statusEnum == EventParticipationStatus.Approval ? "Chờ Xác Nhận"
+                item.Status = statusEnum == EventParticipationStatus.Approval ? "Chờ Xác Nhận"
                            : statusEnum == EventParticipationStatus.NotGoing ? "Không Tham Gia"
                            : statusEnum == EventParticipationStatus.Going ? "Đã Tham Gia"
                            : "Đã CheckIn";

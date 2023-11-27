@@ -41,7 +41,10 @@ public class EventOutput
     {
         get
         {
-            return StartDate >= DateTime.Now && DateTime.Now <= EndDate;
+            return StartDate <= DateTime.Now && DateTime.Now <= EndDate;
         }
     }
+    public string Status { get; set; } = string.Empty;
+
+    public bool IsHost { get; set; } = true;
 }

@@ -197,6 +197,7 @@ public class CalendarService : ICalendarService
             {
                 item.IsSubcribed = true;
             }
+
             return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
         }
         catch (Exception ex)

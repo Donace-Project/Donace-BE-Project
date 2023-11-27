@@ -13,5 +13,12 @@ namespace Donace_BE_Project.Interfaces.Repositories
         /// <param name="calendarId"></param>
         /// <returns></returns>
         Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventByCalendarAsync(Guid calendarId);
+
+        /// <summary>
+        /// Lấy tất cả Id event mà user đã join
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<Dictionary<Guid, EventParticipationStatus>> GetAllIdEventUserJoinAsync(Guid userId);
     }
 }

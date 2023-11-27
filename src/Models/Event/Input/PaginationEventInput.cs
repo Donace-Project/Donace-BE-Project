@@ -2,8 +2,7 @@
 
 namespace Donace_BE_Project.Models.Event.Input;
 
-public class PaginationEventInput : PaginationInput
+public class PaginationEventInput
 {
-    public DateTime FromDate { get; set; } = DateTime.MinValue;
-    public DateTime ToDate { get; set; } = DateTime.MaxValue;
+    public bool? IsNew { get; set; }
 }
