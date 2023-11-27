@@ -1,6 +1,7 @@
 ﻿using Donace_BE_Project.Entities.Event;
 using Donace_BE_Project.EntityFramework.Db;
 using Donace_BE_Project.EntityFramework.Repository.Base;
+using Donace_BE_Project.Enums.Entity;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +15,18 @@ namespace Donace_BE_Project.EntityFramework.Repositories
         {
         }
 
-        public async Task<List<Guid>> ListIdEventByUserIdAsync(Guid userId)
+        public async Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventByCalendarAsync(Guid calendarId)
         {
-            return await _dbSet.Where(x => x.UserId == userId).Select(x => x.EventId).ToListAsync();
+            return await _dbSet.Where(x => x.Event.CalendarId == calendarId).ToDictionaryAsync(x => x.EventId, a => a.Status);
+        }
+
+        public async Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventByUserIdAsync(Guid userId, bool isNew)
+        {
+            return isNew ? await _dbSet.Where(x => x.UserId == userId
+                                           && x.Event.EndDate > DateTime.Now).ToDictionaryAsync(x => x.EventId, x => x.Status)
+                         : await _dbSet.Where(x => x.UserId == userId
+                                           && x.Event.EndDate < DateTime.Now)
+                                        .ToDictionaryAsync(x => x.EventId, x => x.Status);
         }
     }
 }

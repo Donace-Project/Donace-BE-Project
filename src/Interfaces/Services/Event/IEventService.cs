@@ -15,6 +15,6 @@ public interface IEventService
     Task UpdateAsync(EventUpdateInput input);
     Task<List<EventOutput>> GetListEventInLocationAsync(string location);
     Task UserJoinEventAsync(UserJoinEventModel req);
-    Task<List<EventFullOutput>> GetListEventByUserAsync();
-    Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew);
+    Task<List<EventFullOutput>> GetListEventByUserAsync(bool isNew);
+    Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew, bool isSub);
 }

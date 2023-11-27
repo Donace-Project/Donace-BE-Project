@@ -41,20 +41,14 @@ public class EventFullOutput : CacheSortedBaseModel
     public ICollection<SectionOutput> Sections { get; set; } = default!;
 
     public Guid CalendarId { get; set; }
+
+    public bool IsHost { get; set; } = true;
+
+    public string status { get; set; } = string.Empty;
 }
 
 public class EventsModelResponse
 {
     public string Name { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
-    public EventParticipationStatus Status
-    {
-        get
-        {
-            return StartDate < DateTime.Now ?
-                        EventParticipationStatus.UpComing :
-                        EventParticipationStatus.Past;
-
-        }
-    }
 }

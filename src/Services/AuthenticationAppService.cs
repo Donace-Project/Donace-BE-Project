@@ -76,7 +76,7 @@ public class AuthenticationAppService : IAuthenticationAppService
         output.Token = await CreateTokenAsync();
         output.User = _mapper.Map<User, UserModel>(_user);
 
-        await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}:{input.Password}", _user);
+        ///await _iCacheService.SetDataAsync($"{KeyCache.User}:{input.Email}:{input.Password}", _user);
 
         return output;
     }

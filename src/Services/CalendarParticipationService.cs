@@ -89,6 +89,23 @@ public class CalendarParticipationService : ICalendarParticipationService
         }
     }
 
+    public async Task<List<Guid>> GetListIdCalendarUserJoinAsync()
+    {
+        try
+        {
+            var userId = _iUserProvider.GetUserId();
+
+            return await _iCalendarParticipationRepository.GetListCalendarIdAsync(x => x.CreatorId == userId &&
+                                                                                       x.IsDeleted == false &&
+                                                                                       x.IsSubcribed == true);
+        }
+        catch(FriendlyException ex)
+        {
+            _iLogger.LogError($"GetListIdCalendarUserJoinAsync.Exception: {ex.Message}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarParticipationService, ex.Message);
+        }
+    }
+
     public async Task<ResponseModel<List<Guid>>> GetListUserIdOfCalendarAsync(Guid idCalendar, int pageNumber, int pageSize)
     {
         try

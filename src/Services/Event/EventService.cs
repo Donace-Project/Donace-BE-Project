@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.Calendar;
+using Donace_BE_Project.Entities.User;
+using Donace_BE_Project.Enums.Entity;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
@@ -12,6 +14,7 @@ using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Shared.Pagination;
 using Hangfire;
+using System.Reflection.Metadata.Ecma335;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
 
@@ -258,21 +261,39 @@ public class EventService : IEventService
         }
     }
 
-    public async Task<List<EventFullOutput>> GetListEventByUserAsync()
+    public async Task<List<EventFullOutput>> GetListEventByUserAsync(bool isNew)
     {
         try
         {
             var idUser = _iUserProvider.GetUserId();
-            var myEvent = await _repoEvent.GetListAsync(x => x.CreatorId == idUser);
-            var subEventIds = await _eventParticipationService.ListIdEventSubAsync(idUser);
+            var myEvent = isNew ? await _repoEvent.GetListAsync(x => x.CreatorId == idUser && x.EndDate >= DateTime.Now)
+                                : await _repoEvent.GetListAsync(x => x.CreatorId == idUser && x.EndDate <= DateTime.Now);
+            var subEventIds = await _eventParticipationService.ListIdEventSubAsync(idUser, isNew);
 
             if (!subEventIds.Any())
             {
                 return _mapper.Map<List<EventFullOutput>>(myEvent.OrderByDescending(x => x.StartDate));
             }
 
-            var subEvents = await _repoEvent.GetListAsync(x => subEventIds.Contains(x.Id));
-            myEvent.AddRange(subEvents);
+            var subEvents = await _repoEvent.GetListAsync(x => subEventIds.ContainsKey(x.Id));
+
+            var dataMy = _mapper.Map<List<EventFullOutput>>(myEvent);
+            var dataSub = _mapper.Map<List<EventFullOutput>>(subEvents);
+
+            foreach( var item in dataSub )
+            {
+                item.IsHost = false;
+
+                var statusEnum = subEventIds.Where(x => x.Key == item.Id).Select(x => x.Value).First();
+
+                item.status = statusEnum == EventParticipationStatus.Approval ? "Chờ Xác Nhận"
+                           : statusEnum == EventParticipationStatus.NotGoing ? "Không Tham Gia"
+                           : statusEnum == EventParticipationStatus.Going ? "Đã Tham Gia"
+                           : "Đã CheckIn";
+            }
+
+
+            dataMy.AddRange(dataSub);
 
             return _mapper.Map<List<EventFullOutput>>(myEvent.OrderByDescending(x => x.StartDate));
         }
@@ -283,14 +304,27 @@ public class EventService : IEventService
         }
     }
 
-    public async Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew)
+    public async Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew, bool isSub)
     {
         try
-        {
-            var events = isNew ? await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.StartDate >= DateTime.Now) :
-                                 await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.StartDate < DateTime.Now);
+        {            
+            if (!isSub)
+            {
+                var events = isNew ? await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.EndDate >= DateTime.Now) :
+                                 await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.EndDate < DateTime.Now);
 
-            return events.Any() ? _mapper.Map<List<EventFullOutput>>(events.OrderByDescending(x => x.StartDate)) : new List<EventFullOutput>();
+                return events.Any() ? _mapper.Map<List<EventFullOutput>>(events) : new List<EventFullOutput>();
+            }
+
+            var listIdEventStatus = await _eventParticipationService.ListIdEventSubByCalendarAsync(id);
+
+            if (!listIdEventStatus.Any())
+            {
+                return new List<EventFullOutput>();
+            }
+
+            var listEventSubs = await _repoEvent.GetListAsync(x => listIdEventStatus.ContainsKey(x.Id));
+            return listEventSubs.Any() ? _mapper.Map<List<EventFullOutput>>(listEventSubs) : new List<EventFullOutput>();
         }
         catch (FriendlyException ex)
         {

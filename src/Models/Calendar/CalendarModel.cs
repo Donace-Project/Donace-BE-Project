@@ -53,6 +53,7 @@ public class GetListCalendarModel : CacheSortedBaseModel
     public int TotalSubcriber { get; set; }
     public string Avatar { get; set; }
     public Guid UserId { get; set; }
+    public bool IsSubcribed { get; set; } = false;
 }
 
 public class GetListUserInCalendarModel

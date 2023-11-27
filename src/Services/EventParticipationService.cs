@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.Event;
+using Donace_BE_Project.Enums.Entity;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
@@ -37,17 +38,22 @@ namespace Donace_BE_Project.Services
             }
         }
 
-        public async Task<List<Guid>> ListIdEventSubAsync(Guid userId)
+        public async Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventSubAsync(Guid userId, bool isNew)
         {
             try
             {
-                return await _eventParticipationRepository.ListIdEventByUserIdAsync(userId);
+                return await _eventParticipationRepository.ListIdEventByUserIdAsync(userId, isNew);
             }
             catch (FriendlyException ex)
             {
                 _logger.LogError($"EventParticipationService.Exception: {ex.Message}", JsonConvert.SerializeObject(userId));
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventParticipationService, ex.Message);
             }
+        }
+
+        public async Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventSubByCalendarAsync(Guid calendarId)
+        {
+            return await _eventParticipationRepository.ListIdEventByCalendarAsync(calendarId);
         }
     }
 }
