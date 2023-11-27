@@ -193,6 +193,10 @@ public class CalendarService : ICalendarService
 
             var data = _iMapper.Map<List<GetListCalendarModel>>(dataDb);
 
+            foreach(var item in data)
+            {
+                item.IsSubcribed = true;
+            }
             return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
         }
         catch (Exception ex)
