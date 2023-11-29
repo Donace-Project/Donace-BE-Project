@@ -128,27 +128,8 @@ public class CalendarService : ICalendarService
                 return new ResponseModel<List<GetListCalendarModel>>(true, "204", new List<GetListCalendarModel>());
             }
 
-            var listIdCalendarJoin = await _iCalendarParticipationService.GetListIdCalendarUserJoinAsync();
-
             var totalCount = await _iCalendarRepository.CountAsync(x => x.CreatorId.Equals(userId));
-            result = _iMapper.Map<List<GetListCalendarModel>>(listcalendar);
-
-            if (!listIdCalendarJoin.Any())
-            {
-                return new ResponseModel<List<GetListCalendarModel>>(true,
-                                                                 ResponseCode.Donace_BE_Project_CalendarService_Success,
-                                                                 result,
-                                                                 new(totalCount, input.PageNumber, input.PageSize));
-            }
-
-            var calendarJoin = await _iCalendarRepository.GetListCalendarAsync(x => listIdCalendarJoin.Contains(x.Id));
-            var dataSub = _iMapper.Map<List<GetListCalendarModel>>(listcalendar);
-
-            foreach(var item in dataSub)
-            {
-                item.IsSubcribed = true;
-                result.Add(item);
-            }
+            
 
             return new ResponseModel<List<GetListCalendarModel>>(true,
                                                                  ResponseCode.Donace_BE_Project_CalendarService_Success,

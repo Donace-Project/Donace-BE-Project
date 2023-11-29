@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Donace_BE_Project.Entities.Calendar;
 using Donace_BE_Project.Entities.Event;
+using Donace_BE_Project.Entities.Payment;
 using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.Extensions;
 using Donace_BE_Project.Models.Calendar;
@@ -9,6 +10,7 @@ using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Models.User;
+using Donace_BE_Project.Models.VNPay;
 
 namespace Application.ProfileAutoMapper
 {
@@ -53,6 +55,13 @@ namespace Application.ProfileAutoMapper
 
             #region EventParticipation
             CreateMap<EventParticipation, EventParticipationModel>().ReverseMap();
+            #endregion
+
+            #region Payment
+            CreateMap<ConnectPayment, ConnectVnPayModel>()
+                .ForMember(a => a.TmnCode, c => c.MapFrom(x => x.Key))
+                .ForMember(a => a.HashSecret, c => c.MapFrom(x => x.SecretKey))
+                .ReverseMap();
             #endregion
         }
     }

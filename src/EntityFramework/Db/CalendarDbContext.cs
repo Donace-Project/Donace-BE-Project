@@ -26,7 +26,6 @@ public class CalendarDbContext : DbContext
     public DbSet<Comment> Comments { get; set; }
 
     public DbSet<Order> Orders { get; set; }
-    public DbSet<PaymentMethod> PaymentMethods { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
 
     public DbSet<Event> Events { get; set; }
@@ -35,6 +34,8 @@ public class CalendarDbContext : DbContext
 
     public DbSet<Calendar> Calendars { get; set; }
     public DbSet<CalendarParticipation> CalendarParticipations { get; set; }
+
+    public DbSet<ConnectPayment> ConnectPayment { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {

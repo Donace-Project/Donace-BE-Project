@@ -30,7 +30,7 @@ namespace Donace_BE_Project.Extensions
         public static IServiceCollection RegisterAppServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHttpClient();
-
+            services.AddHttpContextAccessor();
             services.AddDbContext<CalendarDbContext>();
             services.AddLogging();
             services.AddHttpContextAccessor();
@@ -55,6 +55,7 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<ICalendarRepository, CalendarRepository>();
             services.AddScoped<ICalendarParticipationRepository, CalendarParticipationRepository>();
             services.AddScoped<IEventParticipationRepository, EventParticipationRepository>();
+            services.AddScoped<IConnectPaymentRepository, ConnectPaymentRepository>();
 
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<AppUserManager, AppUserManager>();
@@ -67,6 +68,8 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<ICommonService, CommonService>();
             services.AddTransient<ILocationService, LocationService>();
             services.AddTransient<IEventParticipationService, EventParticipationService>();
+            services.AddTransient<IPaymentService, PaymentService>();
+            services.AddTransient<IWebManageService, WebManageService>();
 
             return services;
         }
