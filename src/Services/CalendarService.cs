@@ -133,7 +133,7 @@ public class CalendarService : ICalendarService
 
             return new ResponseModel<List<GetListCalendarModel>>(true,
                                                                  ResponseCode.Donace_BE_Project_CalendarService_Success,
-                                                                 _iMapper.Map<List<GetListCalendarModel>>(result),
+                                                                 _iMapper.Map<List<GetListCalendarModel>>(listcalendar),
                                                                  new(totalCount, input.PageNumber, input.PageSize));
 
         }
