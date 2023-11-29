@@ -72,6 +72,7 @@ namespace Donace_BE_Project.Services
                 {
                     var data = _mapper.Map<ConnectPayment>(input);
                     await _connectPaymentRepository.CreateAsync(data);
+                    await _unitOfWork.SaveChangeAsync();
                     return check;
                 }
                 return check;
