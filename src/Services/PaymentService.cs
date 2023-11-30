@@ -23,13 +23,15 @@ namespace Donace_BE_Project.Services
         private readonly IConnectPaymentRepository _connectPaymentRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserProvider _userProvider;
         public PaymentService(ILogger<PaymentService> logger, 
                               IConfiguration configuration,
                               IHttpContextAccessor contextAccessor,
                               IWebManageService webManageService,
                               IConnectPaymentRepository connectPaymentRepository,
                               IMapper mapper, 
-                              IUnitOfWork unit)
+                              IUnitOfWork unit,
+                              IUserProvider userProvider)
         {
             _logger = logger;
             _configuration = configuration;
@@ -38,11 +40,19 @@ namespace Donace_BE_Project.Services
             _connectPaymentRepository = connectPaymentRepository;
             _mapper = mapper;
             _unitOfWork = unit;
+            _userProvider = userProvider;
         }
         public async Task<bool> ConnectPaymentVnPayAsync(ConnectVnPayModel input)
         {
             try
             {
+                var checkExist = await _connectPaymentRepository.GetByUserAsync(_userProvider.GetUserId());
+
+                if (checkExist is not null)
+                {
+                    throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, "Tài khoản này đã liên kết VnPay!");
+                }
+
                 string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
                 string returnUrl = "https://localhost:7272";
 
@@ -80,6 +90,27 @@ namespace Donace_BE_Project.Services
             catch(FriendlyException ex)
             {
                 _logger.LogError($"ConnectPaymentVnPay.Exception: {ex.Message}");
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
+            }
+        }
+
+        public async Task<ConnectVnPayModel> GetConnectAsync()
+        {
+            try
+            {
+                var userId = _userProvider.GetUserId();
+                var data = await _connectPaymentRepository.GetByUserAsync(userId);
+
+                if(data is null)
+                {
+                    return null;
+                }
+
+                return _mapper.Map<ConnectVnPayModel>(data);
+            }
+            catch(FriendlyException ex)
+            {
+                _logger.LogError($"GetConenct exception: {ex.Message}", _userProvider.GetUserId());
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
             }
         }

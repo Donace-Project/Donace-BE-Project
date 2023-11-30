@@ -4,6 +4,7 @@ using Donace_BE_Project.Models.VNPay;
 using Donace_BE_Project.Services;
 using Donace_BE_Project.Shared;
 using Elasticsearch.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PuppeteerSharp;
@@ -15,6 +16,7 @@ namespace Donace_BE_Project.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PaymentController : ControllerBase
     {
         private const string SecretKey = "QKMMEYNWRZBIBWVCCTFDPOYRBSJMFELB";
@@ -29,6 +31,13 @@ namespace Donace_BE_Project.Controllers
         {
             
             return Ok(await _paymentService.ConnectPaymentVnPayAsync(input));
-        }        
+        }
+
+        [HttpGet("get-connect")]
+        public async Task<IActionResult> GetConnectAsync()
+        {
+            return Ok(await _paymentService.GetConnectAsync());
+        }
+        
     }
 }
