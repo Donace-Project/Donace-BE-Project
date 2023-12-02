@@ -17,7 +17,7 @@ builder.Services.ConfigureCustomerSqlContext(_configuration);
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJwt(_configuration);
 builder.Services.RegisterAppServices(_configuration);
-//builder.Services.AddHostedService<RabbitMQService>();
+builder.Services.AddHostedService<RabbitMQService>();
 
 var app = builder.Build();
 app.UseCors(builder => builder
