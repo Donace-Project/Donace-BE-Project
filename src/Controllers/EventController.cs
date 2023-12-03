@@ -38,7 +38,7 @@ public class EventController : ControllerBase
     }
 
     [HttpGet("detail-by-id")]
-    public async Task<EventFullOutput> GetDetailById(Guid id)
+    public async Task<EventDetailModel> GetDetailById(Guid id)
     {
         return await _service.GetDetailByIdAsync(id);
     }

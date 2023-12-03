@@ -181,16 +181,40 @@ public class EventService : IEventService
         return result;
     }
 
-    public async Task<EventFullOutput> GetDetailByIdAsync(Guid id)
+    public async Task<EventDetailModel> GetDetailByIdAsync(Guid id)
     {
         var output = await _repoEvent.GetByIdAsync(id);
 
         if (output is null)
         {
-            throw new FriendlyException(string.Empty, $"Không tìm thấy event");
+            throw new FriendlyException(string.Empty, $"Không tìm thấy event có sort: {id}");
         }
 
-        return _mapper.Map<EventEntity, EventFullOutput>(output);
+        var result = _mapper.Map<EventEntity, EventDetailModel>(output);
+        var userId = _iUserProvider.GetUserId();
+
+        if (userId == output.CreatorId)
+        {
+            result.IsHost = true;
+            return result;
+        }
+
+        var check = await _eventParticipationService.StatusEventJoinAsync(userId);
+
+        switch (check)
+        {
+            case EventParticipationStatus.NotGoing:
+                result.IsSub = false;
+                result.IsAppro = false;
+                return result;
+
+            case EventParticipationStatus.Approval:
+                result.IsSub = false;
+                result.IsAppro = true;
+                return result;
+        }
+
+        return result;
     }
 
     /// <summary>

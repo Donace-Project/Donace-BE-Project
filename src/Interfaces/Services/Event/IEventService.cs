@@ -10,7 +10,7 @@ public interface IEventService
     Task<EventFullOutput> CreateAsync(EventCreateInput input);
     Task<EventDetailModel> GetDetailBySortedAsync(int sorted, Guid calendarId);
     Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input);
-    Task<EventFullOutput> GetDetailByIdAsync(Guid id);
+    Task<EventDetailModel> GetDetailByIdAsync(Guid id);
     Task<ResponseModel<EventsModelResponse>> GetListEventByCalendarAsync();
     Task UpdateAsync(EventUpdateInput input);
     Task<List<EventOutput>> GetListEventInLocationAsync(string location);
