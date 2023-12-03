@@ -31,7 +31,7 @@ public class EventController : ControllerBase
         return await _service.CreateAsync(input);
     }
 
-    [HttpGet("{sorted}-{calendarId}")]
+    [HttpGet("{sorted}/{calendarId}")]
     public async Task<EventDetailModel> GetDetailBySorted(int sorted, Guid calendarId)
     {
         return await _service.GetDetailBySortedAsync(sorted, calendarId);
