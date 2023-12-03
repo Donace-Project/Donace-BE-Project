@@ -7,6 +7,7 @@ using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models.VNPay;
 using Donace_BE_Project.Shared;
+using HtmlAgilityPack;
 using Nest;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
@@ -19,7 +20,6 @@ namespace Donace_BE_Project.Services
         public readonly ILogger<PaymentService> _logger;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IWebManageService _webManageService;
         private readonly IConnectPaymentRepository _connectPaymentRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
@@ -27,7 +27,6 @@ namespace Donace_BE_Project.Services
         public PaymentService(ILogger<PaymentService> logger, 
                               IConfiguration configuration,
                               IHttpContextAccessor contextAccessor,
-                              IWebManageService webManageService,
                               IConnectPaymentRepository connectPaymentRepository,
                               IMapper mapper, 
                               IUnitOfWork unit,
@@ -36,7 +35,6 @@ namespace Donace_BE_Project.Services
             _logger = logger;
             _configuration = configuration;
             _contextAccessor = contextAccessor;
-            _webManageService = webManageService;
             _connectPaymentRepository = connectPaymentRepository;
             _mapper = mapper;
             _unitOfWork = unit;
@@ -75,8 +73,6 @@ namespace Donace_BE_Project.Services
                 string paymentUrl = pay.CreateRequestUrl(url, input.HashSecret);
 
                 var check = CheckConnectPaymentAsync(paymentUrl);
-
-                _webManageService.Close();
 
                 if (check)
                 {
@@ -119,17 +115,19 @@ namespace Donace_BE_Project.Services
         {
             try
             {
-                _webManageService.Driver.Navigate().GoToUrl(url);
+                HtmlWeb web = new HtmlWeb();
+                HtmlDocument doc = web.Load(url);
 
-                // Tìm thẻ <img> thông qua XPath hoặc các phương thức khác
-                var imageElement = _webManageService.Driver.FindElements(By.XPath("//img[@src='/paymentv2/images/graph/error.svg']"));
+                var imageElements = doc.DocumentNode.SelectNodes("//img[@src='/paymentv2/images/graph/error.svg']");
 
-
-                if (imageElement.Any())
+                if (imageElements != null && imageElements.Any())
                 {
                     return false;
                 }
-                return true;
+                else
+                {
+                    return true;
+                }
             }
             catch(FriendlyException ex)
             {
