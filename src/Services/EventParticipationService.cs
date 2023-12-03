@@ -60,5 +60,31 @@ namespace Donace_BE_Project.Services
         {
             return await _eventParticipationRepository.ListIdEventByCalendarAsync(calendarId);
         }
+
+        /// <summary>
+        /// Lấy trạng thái event đã join
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<EventParticipationStatus> StatusEventJoinAsync(Guid userId)
+        {
+            try
+            {
+                var result = await _eventParticipationRepository.FindAsync(x => x.CreatorId == userId);
+
+                if(result is null)
+                {
+                    return EventParticipationStatus.NotGoing;
+                }
+
+                return result.Status;
+            }
+            catch(FriendlyException ex)
+            {
+                _logger.LogError($"EventParticipationService.Exception: {ex.Message}", userId);
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventParticipationService, ex.Message);
+            }
+        }
     }
 }

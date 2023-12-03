@@ -52,3 +52,10 @@ public class EventsModelResponse
     public string Name { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
 }
+
+public class EventDetailModel : EventFullOutput
+{
+    public bool IsSub { get; set; } = true;
+
+    public bool IsAppro { get; set; } = true;
+}

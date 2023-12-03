@@ -33,6 +33,11 @@ namespace Application.ProfileAutoMapper
 
             CreateMap<EventUpdateInput, Event>()
                 .Ignore(des => des.Sections);
+
+            CreateMap<Event, EventDetailModel>()
+                .Ignore(x => x.IsAppro)
+                .Ignore(x => x.IsSub)
+                .ReverseMap();
             #endregion
 
             #region Section

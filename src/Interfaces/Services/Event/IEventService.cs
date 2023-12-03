@@ -8,7 +8,7 @@ public interface IEventService
 {
     Task CancelAsync(Guid id);
     Task<EventFullOutput> CreateAsync(EventCreateInput input);
-    Task<EventFullOutput> GetDetailBySortedAsync(int sorted, Guid calendarId);
+    Task<EventDetailModel> GetDetailBySortedAsync(int sorted, Guid calendarId);
     Task<PaginationOutput<EventOutput>> GetPaginationAsync(PaginationEventInput input);
     Task<EventFullOutput> GetDetailByIdAsync(Guid id);
     Task<ResponseModel<EventsModelResponse>> GetListEventByCalendarAsync();

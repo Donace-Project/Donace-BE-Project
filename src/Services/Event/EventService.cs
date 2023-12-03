@@ -145,16 +145,40 @@ public class EventService : IEventService
     /// <param name="sorted"></param>
     /// <returns></returns>
     /// <exception cref="FriendlyException"></exception>
-    public async Task<EventFullOutput> GetDetailBySortedAsync(int sorted, Guid calendarId)
+    public async Task<EventDetailModel> GetDetailBySortedAsync(int sorted, Guid calendarId)
     {
-        var output = await _repoEvent.GetDetailBySorted(sorted);
+        var output = await _repoEvent.GetDetailBySorted(sorted);        
 
         if (output is null)
         {
             throw new FriendlyException(string.Empty, $"Không tìm thấy event có sort: {sorted}");
         }
 
-        return _mapper.Map<EventEntity, EventFullOutput>(output);
+        var result = _mapper.Map<EventEntity, EventDetailModel>(output);
+        var userId = _iUserProvider.GetUserId();
+
+        if (userId == output.CreatorId)
+        {
+            result.IsHost = true;
+            return result;
+        }
+
+        var check  = await _eventParticipationService.StatusEventJoinAsync(userId);
+                
+        switch (check)
+        {
+            case EventParticipationStatus.NotGoing:
+                result.IsSub = false;
+                result.IsAppro = false;
+                return result;
+
+            case EventParticipationStatus.Approval:
+                result.IsSub = false;
+                result.IsAppro = true;
+                return result;
+        }
+
+        return result;
     }
 
     public async Task<EventFullOutput> GetDetailByIdAsync(Guid id)
@@ -282,7 +306,8 @@ public class EventService : IEventService
             await _eventParticipationService.CreateAsync(new EventParticipationModel
             {
                 UserId = _iUserProvider.GetUserId(),
-                EventId = events.Id
+                EventId = events.Id,
+                Status = EventParticipationStatus.Approval
             });
         }
         catch (Exception ex)

@@ -2,5 +2,23 @@
 
 public enum EventParticipationStatus
 {
-    Approval, NotGoing, Going, CheckIn
+    /// <summary>
+    /// Yêu cầu Approval
+    /// </summary>
+    Approval, 
+
+    /// <summary>
+    /// Không tham gia
+    /// </summary>
+    NotGoing, 
+
+    /// <summary>
+    /// Đã tham gia
+    /// </summary>
+    Going, 
+
+    /// <summary>
+    /// Đã checkin
+    /// </summary>
+    CheckIn
 }
