@@ -20,6 +20,11 @@ namespace Donace_BE_Project.EntityFramework.Repositories
             return await _dbSet.Where(x => x.CreatorId == userId).ToDictionaryAsync(x => x.EventId, a => a.Status);
         }
 
+        public async Task<List<EventParticipation>> GetListByEventAsync(Guid eventId)
+        {
+            return await _dbSet.Where(x => x.EventId == eventId && x.IsDeleted == false && x.Status == EventParticipationStatus.Approval).ToListAsync();
+        }
+
         public async Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventByCalendarAsync(Guid calendarId)
         {
             return await _dbSet.Where(x => x.Event.CalendarId == calendarId).ToDictionaryAsync(x => x.EventId, a => a.Status);

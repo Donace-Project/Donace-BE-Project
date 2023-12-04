@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.Calendar;
+using Donace_BE_Project.Entities.Event;
 using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.Enums.Entity;
 using Donace_BE_Project.Exceptions;
@@ -14,6 +15,7 @@ using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Shared.Pagination;
 using Hangfire;
+using Newtonsoft.Json;
 using System.Reflection.Metadata.Ecma335;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
@@ -32,6 +34,9 @@ public class EventService : IEventService
     private readonly ILocationService _locationService;
     private readonly ICalendarParticipationService _calendarParticipationService;
     private readonly IEventParticipationService _eventParticipationService;
+    private readonly IEventParticipationRepository _eventParticipationRepository;
+    private readonly IUserService _userService;
+
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
@@ -44,7 +49,9 @@ public class EventService : IEventService
                         ICommonService commonService,
                         ILocationService locationService,
                         ICalendarParticipationService calendarParticipationService,
-                        IEventParticipationService eventParticipationService)
+                        IEventParticipationService eventParticipationService,
+                        IEventParticipationRepository eventParticipationRepository,
+                        IUserService userService)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -58,6 +65,8 @@ public class EventService : IEventService
         _locationService = locationService;
         _calendarParticipationService = calendarParticipationService;
         _eventParticipationService = eventParticipationService;
+        _eventParticipationRepository = eventParticipationRepository;
+        _userService = userService;
     }
 
     /// <summary>
@@ -422,6 +431,78 @@ public class EventService : IEventService
         catch (FriendlyException ex)
         {
             _iLogger.LogError($"EventService.Exception: {ex.Message}", _iUserProvider.GetUserId());
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
+        }
+    }
+
+    public async Task<bool> ApprovalAsync(Guid idPart, EventParticipationStatus status)
+    {
+        try
+        {
+            var eventPart = await _eventParticipationService.GetByIdAsync(idPart);
+
+            if (eventPart is null)
+            {
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, "User này không có trong event");
+            }
+
+            var userId = _iUserProvider.GetUserId();
+
+            var events = await _repoEvent.FindAsync(x => x.IsDeleted == false && x.Id == eventPart.EventId);
+
+            if(userId != events.CreatorId)
+            {
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Bạn không có quyền approval");
+            }
+
+            eventPart.Status = status;
+
+            var data = _mapper.Map<EventParticipation>(eventPart);
+            _eventParticipationRepository.Update(data);
+            await _unitOfWork.SaveChangeAsync();
+
+            return true;
+        }
+        catch(FriendlyException ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}", JsonConvert.SerializeObject( new { idPart, status }));
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Lấy danh sách User join event
+    /// </summary>
+    /// <param name="eventId"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
+    public async Task<List<EventParticipationApprovalModel>> ListUserJoinEventAsync(Guid eventId)
+    {
+        try
+        {
+            var eventParts = await _eventParticipationRepository.GetListByEventAsync(eventId);
+
+            if (!eventParts.Any())
+            {
+                return new List<EventParticipationApprovalModel>();
+            }
+
+            var result = _mapper.Map<List<EventParticipationApprovalModel>>(eventParts);
+            var listUserId = eventParts.Select(x => x.UserId).ToList();
+            var listUser = await _userService.ListUserAsync(listUserId);
+
+            foreach(var item in result)
+            {
+                var user = listUser?.Result.FirstOrDefault(x => x.Id == item.UserId);
+                item.Name = user?.UserName;
+                item.Avatar = user?.Avatar;
+            }
+
+            return result;
+        }
+        catch(FriendlyException ex)
+        {
+            _iLogger.LogError($"EventService.Exception: {ex.Message}", eventId);
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
         }
     }

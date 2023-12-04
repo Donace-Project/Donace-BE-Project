@@ -24,5 +24,7 @@ namespace Donace_BE_Project.Interfaces.Services
         Task<Dictionary<Guid, EventParticipationStatus>> GetAllIdEventUserJoinAsync(Guid userId);
 
         Task<EventParticipationStatus> StatusEventJoinAsync(Guid userId);
+
+        Task<EventParticipationModel> GetByIdAsync(Guid id);
     }
 }

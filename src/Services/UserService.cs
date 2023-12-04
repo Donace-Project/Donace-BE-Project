@@ -83,7 +83,7 @@ public class UserService : IUserService
         try
         {
             var strIds = Ids.Select(i => i.ToString());
-            var listUser = await _iUserRepository.GetListAsync(x => strIds.Contains(x.Id));
+            var listUser = await _iUserRepository.GetListAsync(x => strIds.Contains(x.Id) && x.IsDeleted == false);
 
             var data = _mapper.Map<List<GetListUserInCalendarModel>>(listUser);
 

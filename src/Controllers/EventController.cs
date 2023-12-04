@@ -1,6 +1,8 @@
-﻿using Donace_BE_Project.Interfaces.Services.Event;
+﻿using Donace_BE_Project.Enums.Entity;
+using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
+using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Shared.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -77,5 +79,28 @@ public class EventController : ControllerBase
     public async Task<List<EventFullOutput>> ListEventByCalendarAsync(Guid id, bool isNew = true, bool isSub = true)
     {
         return await _service.GetListEventByCalendarAsync(id, isNew, isSub);
+    }
+
+    /// <summary>
+    /// API Approval: status 1 không approval, 2 là chấp thuận yêu cầu
+    /// </summary>
+    /// <param name="idPart"></param>
+    /// <param name="status"></param>
+    /// <returns></returns>
+    [HttpPut("approval")]
+    public async Task<bool> ApprovalAsync(Guid idPart, EventParticipationStatus status)
+    {
+        return await _service.ApprovalAsync(idPart, status);
+    }
+
+    /// <summary>
+    /// Lấy danh sách user yêu cầu join vào event
+    /// </summary>
+    /// <param name="eventId"></param>
+    /// <returns></returns>
+    [HttpGet("user-join-{eventId}")]
+    public async Task<List<EventParticipationApprovalModel>> ListUserJoinEventAsync(Guid eventId)
+    {
+        return await _service.ListUserJoinEventAsync(eventId);
     }
 }

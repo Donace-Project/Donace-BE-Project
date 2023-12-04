@@ -38,6 +38,11 @@ namespace Application.ProfileAutoMapper
                 .Ignore(x => x.IsAppro)
                 .Ignore(x => x.IsSub)
                 .ReverseMap();
+
+            CreateMap<EventParticipation, EventParticipationApprovalModel>()
+                .Ignore(x => x.Name)
+                .Ignore(x => x.Avatar)
+                .ReverseMap();
             #endregion
 
             #region Section

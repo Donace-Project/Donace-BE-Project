@@ -20,5 +20,7 @@ namespace Donace_BE_Project.Interfaces.Repositories
         /// <param name="userId"></param>
         /// <returns></returns>
         Task<Dictionary<Guid, EventParticipationStatus>> GetAllIdEventUserJoinAsync(Guid userId);
+
+        Task<List<EventParticipation>> GetListByEventAsync(Guid eventId);
     }
 }

@@ -43,6 +43,25 @@ namespace Donace_BE_Project.Services
             return await _eventParticipationRepository.GetAllIdEventUserJoinAsync(userId);
         }
 
+        /// <summary>
+        /// Lấy Event Participation by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<EventParticipationModel> GetByIdAsync(Guid id)
+        {
+            try
+            {
+                var result = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false && x.Id == id);
+                return _mapper.Map<EventParticipationModel>(result);
+            }
+            catch (FriendlyException ex)
+            {
+                _logger.LogError($"EventParticipation.Exception: {ex.Message}", id);
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventParticipationService, ex.Message);
+            }
+        }
+
         public async Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventSubAsync(Guid userId, bool isNew)
         {
             try
