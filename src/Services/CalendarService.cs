@@ -166,7 +166,7 @@ public class CalendarService : ICalendarService
             return data;
         }
 
-        var calendarPart = _calendarParticipationRepository.FindAsync(x => x.CalendarId == data.Id && 
+        var calendarPart = await _calendarParticipationRepository.FindAsync(x => x.CalendarId == data.Id && 
                                                                            x.UserId == userId &&
                                                                            x.IsDeleted == false);
         if(calendarPart is not null)
