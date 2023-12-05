@@ -1,4 +1,6 @@
-﻿namespace Donace_BE_Project.Models.User;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Donace_BE_Project.Models.User;
 
 public class UserModel
 {
@@ -18,6 +20,8 @@ public class UserModel
 public class UpdateUserModel
 {
     public string UserName { get; set; } = string.Empty;
+
+    [MaxLength(500, ErrorMessage = "Không được vượt quá 500 ký tự")]
     public string Avatar { get; set; } = string.Empty;
     public string Bio { get; set; } = string.Empty;
     public string Instagram { get; set; } = string.Empty;
