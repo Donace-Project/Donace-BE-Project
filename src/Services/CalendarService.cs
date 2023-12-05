@@ -8,6 +8,7 @@ using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.Calendar;
 using Donace_BE_Project.Models.CalendarParticipation;
 using Newtonsoft.Json;
+using OpenQA.Selenium.DevTools;
 using System.Net.WebSockets;
 
 namespace Donace_BE_Project.Services;
@@ -21,13 +22,15 @@ public class CalendarService : ICalendarService
     private readonly IUnitOfWork _iUnitOfWork;
     private readonly IUserProvider _userProvider;
     private readonly IUserService _iUserService;
+    private readonly ICalendarParticipationRepository _calendarParticipationRepository;
     public CalendarService(ICalendarRepository iCalendarRepository,
                            ILogger<CalendarService> logger,
                            IMapper mapper,
                            IUnitOfWork unitOfWork,
                            IUserProvider userProvider,
                            ICalendarParticipationService calendarParticipationService,
-                           IUserService userService)
+                           IUserService userService,
+                           ICalendarParticipationRepository calendarParticipationRepository)
     {
         _iCalendarRepository = iCalendarRepository;
         _iLogger = logger;
@@ -36,6 +39,7 @@ public class CalendarService : ICalendarService
         _userProvider = userProvider;
         _iCalendarParticipationService = calendarParticipationService;
         _iUserService = userService;
+        _calendarParticipationRepository = calendarParticipationRepository;
     }
 
     /// <summary>
@@ -146,8 +150,31 @@ public class CalendarService : ICalendarService
 
     public async Task<CalendarResponseModel> GetByIdAsync(Guid id)
     {
+        var userId = _userProvider.GetUserId();
         var calendar = await _iCalendarRepository.GetByIdAsync(id);
-        return _iMapper.Map<CalendarResponseModel>(calendar);
+
+        if(calendar is null)
+        {
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Không tìm thấy Lịch");
+        }
+
+        var data = _iMapper.Map<CalendarResponseModel>(calendar);
+
+        if (calendar.UserId == userId)
+        {
+            data.IsHost = true;
+            return data;
+        }
+
+        var calendarPart = _calendarParticipationRepository.FindAsync(x => x.CalendarId == data.Id && 
+                                                                           x.UserId == userId &&
+                                                                           x.IsDeleted == false);
+        if(calendarPart is not null)
+        {
+            data.IsSub = true;
+        }
+
+        return data;
     }
 
     /// <summary>
@@ -255,6 +282,18 @@ public class CalendarService : ICalendarService
         try
         {
             var userId = _userProvider.GetUserId();
+
+            var calendar = await _iCalendarRepository.FindAsync(x => x.UserId == userId && x.IsDeleted == false);
+
+            if (calendar is null)
+            {
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Lịch không tồn tại");
+            }
+
+            calendar.TotalSubscriber += 1;
+
+            _iCalendarRepository.Update(calendar);
+
             await _iCalendarParticipationService.CreateAsync(new CalendarParticipationModel
             {
                 UserId = userId,

@@ -95,4 +95,8 @@ public class CalendarResponseModel : CacheSortedBaseModel
     public string AddressName { get; set; } = string.Empty;
 
     public int TotalSubcribed { get; set;}
+
+    public bool IsHost { get; set; } = false;
+
+    public bool IsSub { get; set; } = false;
 }
