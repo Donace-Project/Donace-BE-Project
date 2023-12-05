@@ -23,6 +23,8 @@ public class CalendarService : ICalendarService
     private readonly IUserProvider _userProvider;
     private readonly IUserService _iUserService;
     private readonly ICalendarParticipationRepository _calendarParticipationRepository;
+    private readonly IEmailSender _emailSender;
+
     public CalendarService(ICalendarRepository iCalendarRepository,
                            ILogger<CalendarService> logger,
                            IMapper mapper,
@@ -30,7 +32,8 @@ public class CalendarService : ICalendarService
                            IUserProvider userProvider,
                            ICalendarParticipationService calendarParticipationService,
                            IUserService userService,
-                           ICalendarParticipationRepository calendarParticipationRepository)
+                           ICalendarParticipationRepository calendarParticipationRepository,
+                           IEmailSender emailSender)
     {
         _iCalendarRepository = iCalendarRepository;
         _iLogger = logger;
@@ -40,6 +43,7 @@ public class CalendarService : ICalendarService
         _iCalendarParticipationService = calendarParticipationService;
         _iUserService = userService;
         _calendarParticipationRepository = calendarParticipationRepository;
+        _emailSender = emailSender;
     }
 
     /// <summary>
@@ -303,6 +307,23 @@ public class CalendarService : ICalendarService
         catch (Exception ex)
         {
             _iLogger.LogError($"Calendar.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(input)}");
+            throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
+        }
+    }
+
+    public async Task InviteJoinCalendarAsync(InviteJoinCalendarModel input)
+    {
+        try
+        {
+            var sub = $"Mời bạn tham gia lịch {input.CalendarName}";
+
+            var body = $"Click vào link {input.UrlInfo} để xem thông tin";
+
+            await _emailSender.SendEmailAsync(input.Email, sub, body);
+        }
+        catch(FriendlyException ex)
+        {
+            _iLogger.LogError($"InviteJoinCalendar exception: {ex.Message}", JsonConvert.SerializeObject(input));
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CalendarService, ex.Message);
         }
     }

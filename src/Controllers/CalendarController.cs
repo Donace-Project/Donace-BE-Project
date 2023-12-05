@@ -104,4 +104,14 @@ public class CalendarController : ControllerBase
     {
         return await _iCalendarService.GetListCalendarSubcribedAsync(input);
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("invite-mail")]
+    public async Task InviteSendMailJoinAsync(InviteJoinCalendarModel input)
+    {
+
+    }
 }

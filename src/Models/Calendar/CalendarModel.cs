@@ -100,3 +100,12 @@ public class CalendarResponseModel : CacheSortedBaseModel
 
     public bool IsSub { get; set; } = false;
 }
+
+public class InviteJoinCalendarModel
+{
+    public string Email { get; set; }
+
+    public string UrlInfo { get; set; }
+
+    public string CalendarName { get; set; } = string.Empty;
+}

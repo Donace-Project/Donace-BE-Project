@@ -13,4 +13,5 @@ public interface ICalendarService
     Task<ResponseModel<List<GetListUserInCalendarModel>>> GetListUserInCalendarAsync(RequestGetListUserInCalendarModel input);
     Task UserJoinCalendarAsync(UserJoinCalendarReqModel input);
     Task<ResponseModel<List<GetListCalendarModel>>> GetListCalendarSubcribedAsync(RequestBaseModel input);
+    Task InviteJoinCalendarAsync(InviteJoinCalendarModel input);
 }
