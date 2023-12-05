@@ -260,6 +260,8 @@ public class EventService : IEventService
 
         await _repoSection.CancelSections(id);
 
+
+
         await _unitOfWork.SaveChangeAsync();
     }
 

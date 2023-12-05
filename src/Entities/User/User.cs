@@ -20,7 +20,7 @@ public class User : IdentityUser
 
     public string Website { get; set; } = string.Empty;
 
-    public DateTime CreationTime { get; set; }
+    public DateTime CreationTime { get; set; } = DateTime.Now;
 
     public Guid CreatorId { get; set; }
 

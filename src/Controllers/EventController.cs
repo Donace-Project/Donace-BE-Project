@@ -103,4 +103,6 @@ public class EventController : ControllerBase
     {
         return await _service.ListUserJoinEventAsync(eventId);
     }
+
+    
 }

@@ -62,7 +62,7 @@ public class GetListUserInCalendarModel
     public string UserName { get; set; } = string.Empty;
     public string Avatar { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public DateTime CreateDate { get; set; }
+    public DateTime CreationTime { get; set; }
 }
 
 public class RequestGetListUserInCalendarModel : RequestBaseModel

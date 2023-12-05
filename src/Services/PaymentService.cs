@@ -24,13 +24,15 @@ namespace Donace_BE_Project.Services
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserProvider _userProvider;
+        private readonly IWebManageService _webManageService;
         public PaymentService(ILogger<PaymentService> logger, 
                               IConfiguration configuration,
                               IHttpContextAccessor contextAccessor,
                               IConnectPaymentRepository connectPaymentRepository,
                               IMapper mapper, 
                               IUnitOfWork unit,
-                              IUserProvider userProvider)
+                              IUserProvider userProvider,
+                              IWebManageService webManageService)
         {
             _logger = logger;
             _configuration = configuration;
@@ -39,6 +41,7 @@ namespace Donace_BE_Project.Services
             _mapper = mapper;
             _unitOfWork = unit;
             _userProvider = userProvider;
+            _webManageService = webManageService;
         }
         public async Task<bool> ConnectPaymentVnPayAsync(ConnectVnPayModel input)
         {
@@ -115,19 +118,17 @@ namespace Donace_BE_Project.Services
         {
             try
             {
-                HtmlWeb web = new HtmlWeb();
-                HtmlDocument doc = web.Load(url);
+                _webManageService.Driver.Navigate().GoToUrl(url);
 
-                var imageElements = doc.DocumentNode.SelectNodes("//img[@src='/paymentv2/images/graph/error.svg']");
+                // Tìm thẻ <img> thông qua XPath hoặc các phương thức khác
+                var imageElement = _webManageService.Driver.FindElements(By.XPath("//img[@src='/paymentv2/images/graph/error.svg']"));
 
-                if (imageElements != null && imageElements.Any())
+
+                if (imageElement.Any())
                 {
                     return false;
                 }
-                else
-                {
-                    return true;
-                }
+                return true;
             }
             catch(FriendlyException ex)
             {

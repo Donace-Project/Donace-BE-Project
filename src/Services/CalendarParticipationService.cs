@@ -110,7 +110,7 @@ public class CalendarParticipationService : ICalendarParticipationService
     {
         try
         {
-            var listUserId = await _iCalendarParticipationRepository.GetListUserIdOfCalendarAsync(x => x.CalendarId == idCalendar, pageNumber, pageSize);
+            var listUserId = await _iCalendarParticipationRepository.GetListUserIdOfCalendarAsync(x => x.CalendarId == idCalendar && x.IsSubcribed == true, pageNumber, pageSize);
 
             return new ResponseModel<List<Guid>>(true, ResponseCode.Donace_BE_Project_CalendarParticipationService_Success, listUserId, new());
         }
