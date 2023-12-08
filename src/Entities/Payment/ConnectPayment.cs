@@ -1,4 +1,5 @@
 ﻿using Donace_BE_Project.Entities.Base;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
@@ -10,6 +11,7 @@ namespace Donace_BE_Project.Entities.Payment
 
         public string Key { get; set; }
 
+        [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Sorted { get; set; } 
     }

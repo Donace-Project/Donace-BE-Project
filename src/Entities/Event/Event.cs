@@ -40,10 +40,11 @@ public class Event : BaseEntity
 
     public int TotalGuest { get; set; }
 
-    public List<Section> Sections { get; set; } = default!;
+    public List<Section>? Sections { get; set; } = default!;
 
     public Guid CalendarId { get; set; }
 
+    [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Sorted { get; set; }
 

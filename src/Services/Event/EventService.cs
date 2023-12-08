@@ -233,13 +233,20 @@ public class EventService : IEventService
     /// <returns></returns>
     public async Task UpdateAsync(EventUpdateInput input)
     {
-        await IsValidCalendar(input.CalendarId);
-        EventEntity foundEvent = await FindEventAsync(input.Id);
+        try
+        {
+            await IsValidCalendar(input.CalendarId);
+            EventEntity foundEvent = await FindEventAsync(input.Id);
 
-        foundEvent = _mapper.Map(input, foundEvent);
-        _repoEvent.Update(foundEvent);
-        await _repoSection.OverrideSections(foundEvent.Id, _mapper.Map<List<Section>>(input.Sections));
-        await _unitOfWork.SaveChangeAsync();
+            foundEvent = _mapper.Map(input, foundEvent);
+            _repoEvent.Update(foundEvent);
+            await _unitOfWork.SaveChangeAsync();
+
+        }
+        catch(FriendlyException ex)
+        {
+            throw new FriendlyException("", ex.Message);
+        }
     }
 
     /// <summary>
