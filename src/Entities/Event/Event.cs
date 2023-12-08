@@ -44,7 +44,6 @@ public class Event : BaseEntity
 
     public Guid CalendarId { get; set; }
 
-    [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Sorted { get; set; }
 

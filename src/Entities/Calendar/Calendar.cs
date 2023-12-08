@@ -28,7 +28,6 @@ public class Calendar : BaseEntity
     [Required]
     public Guid UserId { get; set; }
 
-    [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Sorted { get; set; }
 }

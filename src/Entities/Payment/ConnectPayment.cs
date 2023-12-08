@@ -11,7 +11,6 @@ namespace Donace_BE_Project.Entities.Payment
 
         public string Key { get; set; }
 
-        [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Sorted { get; set; } 
     }

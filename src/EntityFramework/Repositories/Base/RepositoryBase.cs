@@ -52,7 +52,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         {
             entity.LastModificationTime = DateTime.Now;
             entity.LastModifierId = _userProvider.GetUserId();
-            _dbSet.Update(entity);
+            _dbSet.Attach(entity);
         }
 
         public virtual void UpdateRange(List<TEntity> entities)
@@ -62,7 +62,7 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
                 entities[i].LastModificationTime = DateTime.Now;
             }
 
-            _dbSet.UpdateRange(entities);
+            _dbSet.AttachRange(entities);
         }
 
         public virtual void Delete(TEntity entity, bool softDelete = true)
