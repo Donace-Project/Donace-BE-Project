@@ -39,6 +39,8 @@ public class EventCreateInput
     public List<SectionCreateInput> Sections { get; set; } = new();
 
     public Guid CalendarId { get; set; }
+
+    public string Desc { get; set; } = string.Empty;
 }
 
 public class SectionCreateInput

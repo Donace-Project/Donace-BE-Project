@@ -48,4 +48,6 @@ public class Event : BaseEntity
     public int Sorted { get; set; }
 
     public string LocationCode { get; set; } = string.Empty;
+
+    public string Desc { get; set; } = string.Empty;
 }
