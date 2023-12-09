@@ -19,6 +19,7 @@ public class Event : BaseEntity
     public float? Long { get; set; }
 
     public int Capacity { get; set; }
+    public bool IsUnlimited { get; set; }
 
     public bool IsOverCapacity { get; set; }
 

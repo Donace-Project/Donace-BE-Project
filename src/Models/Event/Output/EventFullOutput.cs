@@ -15,7 +15,7 @@ public class EventFullOutput : CacheSortedBaseModel
     public string Lat { get; set; } = string.Empty;
 
     public string Long { get; set; } = string.Empty;
-
+    public bool IsUnlimited { get; set; }
     public int Capacity { get; set; }
 
     public bool IsOverCapacity { get; set; }

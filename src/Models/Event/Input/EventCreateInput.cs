@@ -17,6 +17,7 @@ public class EventCreateInput
 
     public float? Long { get; set; }
 
+    public bool IsUnlimited { get; set; }
     public int Capacity { get; set; }
 
     public bool IsOverCapacity { get; set; }
