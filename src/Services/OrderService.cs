@@ -51,7 +51,5 @@ namespace Donace_BE_Project.Services
                 throw new FriendlyException("500", ex.Message);
             }
         }
-
-        private async Task<>
     }
 }
