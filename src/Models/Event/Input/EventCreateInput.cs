@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Donace_BE_Project.Entities.Ticket;
+using System.ComponentModel.DataAnnotations;
 
 namespace Donace_BE_Project.Models.Event.Input;
 
@@ -39,8 +40,10 @@ public class EventCreateInput
     public string LinkMeet { get; set; } = string.Empty;
     public List<SectionCreateInput> Sections { get; set; } = new();
     public Guid CalendarId { get; set; }
-
     public string Desc { get; set; } = string.Empty;
+
+    // TODO: lưu ticket
+    public TicketDto Ticket { get; set; }
 }
 
 public class SectionCreateInput

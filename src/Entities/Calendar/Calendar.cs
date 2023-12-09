@@ -8,6 +8,7 @@ public class Calendar : BaseEntity
 {
     [Required]
     public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     public string Cover { get; set; } = string.Empty;
 
