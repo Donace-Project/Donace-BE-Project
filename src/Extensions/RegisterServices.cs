@@ -59,6 +59,7 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<IConnectPaymentRepository, ConnectPaymentRepository>();
             services.AddScoped<IUserTicketsRepository, UserTicketsRepository>();
             services.AddScoped<ITicketsRepository, TicketsRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
 
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<AppUserManager, AppUserManager>();
@@ -74,6 +75,7 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddTransient<IWebManageService, WebManageService>();
             services.AddTransient<IUserTicketsService, UserTicketsService>();
+            services.AddTransient<IOrderService, OrderService>();
 
             return services;
         }

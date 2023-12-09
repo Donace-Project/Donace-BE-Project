@@ -112,6 +112,6 @@ public class CalendarController : ControllerBase
     [HttpPost("invite-mail")]
     public async Task InviteSendMailJoinAsync(InviteJoinCalendarModel input)
     {
-
+        await _iCalendarService.InviteJoinCalendarAsync(input);
     }
 }
