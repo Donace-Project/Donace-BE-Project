@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using Donace_BE_Project.Entities.Ticket;
 using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.EntityFramework;
 using Donace_BE_Project.EntityFramework.Db;
@@ -56,6 +57,9 @@ namespace Donace_BE_Project.Extensions
             services.AddScoped<ICalendarParticipationRepository, CalendarParticipationRepository>();
             services.AddScoped<IEventParticipationRepository, EventParticipationRepository>();
             services.AddScoped<IConnectPaymentRepository, ConnectPaymentRepository>();
+            services.AddScoped<IUserTicketsRepository, UserTicketsRepository>();
+            services.AddScoped<ITicketsRepository, TicketsRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
 
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<AppUserManager, AppUserManager>();
@@ -70,6 +74,8 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<IEventParticipationService, EventParticipationService>();
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddTransient<IWebManageService, WebManageService>();
+            services.AddTransient<IUserTicketsService, UserTicketsService>();
+            services.AddTransient<IOrderService, OrderService>();
 
             return services;
         }

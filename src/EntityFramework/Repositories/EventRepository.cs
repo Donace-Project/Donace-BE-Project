@@ -29,12 +29,19 @@ public class EventRepository : RepositoryBase<Event>, IEventRepository
 
     public async Task<List<Event>> GetPaginationAsync(PaginationEventInput input, Guid userId)
     {
-        var query = input.IsNew == null ? await _dbSet.Where(x => x.IsDeleted == false && x.CreatorId == userId).ToListAsync() :
+        try
+        {
+            var query = input.IsNew == null ? await _dbSet.Where(x => x.IsDeleted == false && x.CreatorId == userId).ToListAsync() :
             input.IsNew.Value ?
                         await _dbSet.Where(x => x.EndDate >= DateTime.Now && x.IsDeleted == false && x.CreatorId == userId).ToListAsync() :
                         await _dbSet.Where(x => x.EndDate < DateTime.Now && x.IsDeleted == false && x.CreatorId == userId).ToListAsync();
 
-        return query;
+            return query;
+        }
+        catch(Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
     }
 
     public Task<Event?> GetDetailBySorted(int sorted)

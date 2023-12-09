@@ -4,6 +4,7 @@ using Donace_BE_Project.EntityFramework.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Donace_BE_Project.Migrations
 {
     [DbContext(typeof(CalendarDbContext))]
-    partial class CalendarDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231208201645_v3")]
+    partial class v3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -189,9 +192,6 @@ namespace Donace_BE_Project.Migrations
                     b.Property<bool>("IsMultiSection")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsOnline")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsOverCapacity")
                         .HasColumnType("bit");
 
@@ -203,10 +203,6 @@ namespace Donace_BE_Project.Migrations
 
                     b.Property<float?>("Lat")
                         .HasColumnType("real");
-
-                    b.Property<string>("LinkMeet")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LocationCode")
                         .IsRequired()

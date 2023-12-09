@@ -1,6 +1,10 @@
-﻿using Donace_BE_Project.Interfaces.Services;
+﻿using Donace_BE_Project.Exceptions;
+using Donace_BE_Project.Interfaces.Services;
 using MailKit.Net.Smtp;
+using Microsoft.Extensions.Hosting;
 using MimeKit;
+using System.Net.Mail;
+using System.Net;
 
 namespace Donace_BE_Project.Services
 {
@@ -13,31 +17,38 @@ namespace Donace_BE_Project.Services
         }
         public async Task SendEmailAsync(string email, string subject, string body)
         {
-            var userName = _configuration["Smtp:Username"];
-            var server = _configuration["Smtp:Server"];
-            var password = _configuration["Smtp:Password"];
-
-            var emailMessage = new MimeMessage();
-            emailMessage.From.Add(new MailboxAddress("Donace Ticks", userName));
-
-            emailMessage.To.Add(MailboxAddress.Parse(email));
-            emailMessage.Subject = subject;
-
-            var textPart = new TextPart("plain")
+            try
             {
-                Text = body
-            };
+                var userName = _configuration["Smtp:Username"];
+                var host = _configuration["Smtp:Server"];
+                var password = _configuration["Smtp:Password"];
 
-            var multipart = new Multipart("mixed");
-            multipart.Add(textPart);
+                var smtpClient = new System.Net.Mail.SmtpClient
+                {
+                    Host = host, // set your SMTP server name here
+                    Port = 587, // Port 
+                    EnableSsl = true,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential()
+                    {
+                        UserName = userName,
+                        Password = password
+                    }
+                };
 
-            emailMessage.Body = multipart;
+                using var message = new MailMessage(userName, email)
+                {
+                    Subject = subject,
+                    Body = body,
+                };
+                message.From = new MailAddress(userName, "Donace Ticket");
+                await smtpClient.SendMailAsync(message);
+            }
+            catch (FriendlyException ex)
+            {
 
-            using var client = new SmtpClient();
-            await client.ConnectAsync(server, 587, false);
-            await client.AuthenticateAsync(userName, password);
-            await client.SendAsync(emailMessage);
-            await client.DisconnectAsync(true);
+            }
         }
     }
 }

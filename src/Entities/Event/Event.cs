@@ -40,7 +40,7 @@ public class Event : BaseEntity
 
     public int TotalGuest { get; set; }
 
-    public List<Section> Sections { get; set; } = default!;
+    public List<Section>? Sections { get; set; } = default!;
 
     public Guid CalendarId { get; set; }
 
@@ -51,4 +51,5 @@ public class Event : BaseEntity
 
     public bool IsOnline { get; set; }
     public string LinkMeet { get; set; } = string.Empty;
+    public string Desc { get; set; } = string.Empty;
 }

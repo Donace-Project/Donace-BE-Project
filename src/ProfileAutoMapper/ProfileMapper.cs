@@ -9,6 +9,7 @@ using Donace_BE_Project.Models.CalendarParticipation;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Models.EventParticipation;
+using Donace_BE_Project.Models.Oder;
 using Donace_BE_Project.Models.User;
 using Donace_BE_Project.Models.VNPay;
 
@@ -72,7 +73,11 @@ namespace Application.ProfileAutoMapper
                 .ForMember(a => a.TmnCode, c => c.MapFrom(x => x.Key))
                 .ForMember(a => a.HashSecret, c => c.MapFrom(x => x.SecretKey))
                 .ReverseMap();
+
+            CreateMap<Order, OrderModel>().ReverseMap();
             #endregion
+
+
         }
     }
 }
