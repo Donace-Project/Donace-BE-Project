@@ -119,16 +119,10 @@ namespace Donace_BE_Project.Services
             try
             {
                 _webManageService.Driver.Navigate().GoToUrl(url);
-
                 // Tìm thẻ <img> thông qua XPath hoặc các phương thức khác
                 var imageElement = _webManageService.Driver.FindElements(By.XPath("//img[@src='/paymentv2/images/graph/error.svg']"));
-
-
-                if (imageElement.Any())
-                {
-                    return false;
-                }
-                return true;
+                _webManageService.Close();
+                return !imageElement.Any();
             }
             catch(FriendlyException ex)
             {
