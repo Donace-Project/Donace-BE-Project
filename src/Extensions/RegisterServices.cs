@@ -77,6 +77,7 @@ namespace Donace_BE_Project.Extensions
             services.AddTransient<IUserTicketsService, UserTicketsService>();
             services.AddTransient<IOrderService, OrderService>();
 
+            services.AddTransient<Lazy<IWebManageService>>(provider => new Lazy<IWebManageService>(() => provider.GetRequiredService<IWebManageService>()));
             return services;
         }
 

@@ -15,7 +15,7 @@ using System.Data;
 
 namespace Donace_BE_Project.Services
 {
-    public class PaymentService : IPaymentService, IDisposable
+    public class PaymentService : IPaymentService
     {
         public readonly ILogger<PaymentService> _logger;
         private readonly IConfiguration _configuration;
@@ -24,7 +24,7 @@ namespace Donace_BE_Project.Services
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserProvider _userProvider;
-        private readonly IWebManageService _webManageService;
+        private readonly Lazy<IWebManageService> _webManageService;
         public PaymentService(ILogger<PaymentService> logger,
                               IConfiguration configuration,
                               IHttpContextAccessor contextAccessor,
@@ -32,7 +32,7 @@ namespace Donace_BE_Project.Services
                               IMapper mapper,
                               IUnitOfWork unit,
                               IUserProvider userProvider,
-                              IWebManageService webManageService)
+                              Lazy<IWebManageService> webManageService)
         {
             _logger = logger;
             _configuration = configuration;
@@ -118,10 +118,10 @@ namespace Donace_BE_Project.Services
         {
             try
             {
-                _webManageService.Driver.Navigate().GoToUrl(url);
+                _webManageService.Value.Driver.Navigate().GoToUrl(url);
                 // Tìm thẻ <img> thông qua XPath hoặc các phương thức khác
-                var imageElement = _webManageService.Driver.FindElements(By.XPath("//img[@src='/paymentv2/images/graph/error.svg']"));
-                _webManageService.Close();
+                var imageElement = _webManageService.Value.Driver.FindElements(By.XPath("//img[@src='/paymentv2/images/graph/error.svg']"));
+                _webManageService.Value.Close();
                 return !imageElement.Any();
             }
             catch (FriendlyException ex)
@@ -129,11 +129,6 @@ namespace Donace_BE_Project.Services
                 _logger.LogError($"CheckConnectPayment exception: {ex.Message}", url);
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
             }
-        }
-
-        public void Dispose()
-        {
-            _webManageService.Close();
         }
     }
 }
