@@ -14,7 +14,7 @@ public class Event : BaseEntity
 
     public string AddressName { get; set; } = string.Empty;
 
-    public float? Lat { get; set; } 
+    public float? Lat { get; set; }
 
     public float? Long { get; set; }
 
@@ -48,4 +48,7 @@ public class Event : BaseEntity
     public int Sorted { get; set; }
 
     public string LocationCode { get; set; } = string.Empty;
+
+    public bool IsOnline { get; set; }
+    public string LinkMeet { get; set; } = string.Empty;
 }

@@ -35,9 +35,9 @@ public class EventCreateInput
     public bool IsMultiSection { get; set; }
 
     public float Duration { get; set; }
-
+    public bool IsOnline { get; set; }
+    public string LinkMeet { get; set; } = string.Empty;
     public List<SectionCreateInput> Sections { get; set; } = new();
-
     public Guid CalendarId { get; set; }
 }
 
