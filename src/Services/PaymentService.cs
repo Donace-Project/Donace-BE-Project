@@ -1,17 +1,13 @@
 ﻿using AutoMapper;
-using CloudinaryDotNet.Actions;
 using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.Payment;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.VNPay;
 using Donace_BE_Project.Shared;
-using HtmlAgilityPack;
-using Nest;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
-using System.Data;
 
 namespace Donace_BE_Project.Services
 {
@@ -43,7 +39,7 @@ namespace Donace_BE_Project.Services
             _userProvider = userProvider;
             _webManageService = webManageService;
         }
-        public async Task<bool> ConnectPaymentVnPayAsync(ConnectVnPayModel input)
+        public async Task<ResponseModel<bool>> ConnectPaymentVnPayAsync(ConnectVnPayModel input)
         {
             try
             {
@@ -51,7 +47,12 @@ namespace Donace_BE_Project.Services
 
                 if (checkExist is not null)
                 {
-                    throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, "Tài khoản này đã liên kết VnPay!");
+                    return new ResponseModel<bool>
+                    {
+                        Success = true,
+                        Code = "Connected",
+                        Result = true,
+                    };
                 }
 
                 string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
@@ -82,9 +83,20 @@ namespace Donace_BE_Project.Services
                     var data = _mapper.Map<ConnectPayment>(input);
                     await _connectPaymentRepository.CreateAsync(data);
                     await _unitOfWork.SaveChangeAsync();
-                    return check;
+                    return new ResponseModel<bool>
+                    {
+                        Success = true,
+                        Code = "Connected",
+                        Result = true,
+                    };
                 }
-                return check;
+
+                return new ResponseModel<bool>
+                {
+                    Success = false,
+                    Message = "Không thể liên kết VNPAY! Vui lòng kiểm tra lại key",
+                    Result = false,
+                };
             }
             catch (FriendlyException ex)
             {
