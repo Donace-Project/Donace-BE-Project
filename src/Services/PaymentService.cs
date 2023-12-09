@@ -15,7 +15,7 @@ using System.Data;
 
 namespace Donace_BE_Project.Services
 {
-    public class PaymentService : IPaymentService
+    public class PaymentService : IPaymentService, IDisposable
     {
         public readonly ILogger<PaymentService> _logger;
         private readonly IConfiguration _configuration;
@@ -25,11 +25,11 @@ namespace Donace_BE_Project.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserProvider _userProvider;
         private readonly IWebManageService _webManageService;
-        public PaymentService(ILogger<PaymentService> logger, 
+        public PaymentService(ILogger<PaymentService> logger,
                               IConfiguration configuration,
                               IHttpContextAccessor contextAccessor,
                               IConnectPaymentRepository connectPaymentRepository,
-                              IMapper mapper, 
+                              IMapper mapper,
                               IUnitOfWork unit,
                               IUserProvider userProvider,
                               IWebManageService webManageService)
@@ -86,7 +86,7 @@ namespace Donace_BE_Project.Services
                 }
                 return check;
             }
-            catch(FriendlyException ex)
+            catch (FriendlyException ex)
             {
                 _logger.LogError($"ConnectPaymentVnPay.Exception: {ex.Message}");
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
@@ -100,14 +100,14 @@ namespace Donace_BE_Project.Services
                 var userId = _userProvider.GetUserId();
                 var data = await _connectPaymentRepository.GetByUserAsync(userId);
 
-                if(data is null)
+                if (data is null)
                 {
                     return null;
                 }
 
                 return _mapper.Map<ConnectVnPayModel>(data);
             }
-            catch(FriendlyException ex)
+            catch (FriendlyException ex)
             {
                 _logger.LogError($"GetConenct exception: {ex.Message}", _userProvider.GetUserId());
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
@@ -124,11 +124,16 @@ namespace Donace_BE_Project.Services
                 _webManageService.Close();
                 return !imageElement.Any();
             }
-            catch(FriendlyException ex)
+            catch (FriendlyException ex)
             {
                 _logger.LogError($"CheckConnectPayment exception: {ex.Message}", url);
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
             }
+        }
+
+        public void Dispose()
+        {
+            _webManageService.Close();
         }
     }
 }
