@@ -17,7 +17,9 @@ namespace Donace_BE_Project.EntityFramework.Repositories
 
         public async Task<Dictionary<Guid, EventParticipationStatus>> GetAllIdEventUserJoinAsync(Guid userId)
         {
-            return await _dbSet.Where(x => x.CreatorId == userId).ToDictionaryAsync(x => x.EventId, a => a.Status);
+            return await _dbSet.Where(x => x.CreatorId == userId && 
+                                           x.IsDeleted == false && 
+                                           x.Status != EventParticipationStatus.NotGoing).ToDictionaryAsync(x => x.EventId, a => a.Status);
         }
 
         public async Task<List<EventParticipation>> GetListByEventAsync(Guid eventId)
