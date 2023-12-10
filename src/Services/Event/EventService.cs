@@ -190,7 +190,8 @@ public class EventService : IEventService
         }
 
         var check  = await _eventParticipationService.StatusEventJoinAsync(userId);
-                
+        result.IsFree = (await _ticketsRepository.FindAsync(x => x.EventId == output.Id)).IsFree;
+
         switch (check)
         {
             case EventParticipationStatus.NotGoing:

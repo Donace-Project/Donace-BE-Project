@@ -69,4 +69,6 @@ public class EventDetailModel : EventFullOutput
             return StartDate <= DateTime.Now && DateTime.Now <= EndDate;
         }
     }
+
+    public bool IsFree { get;set; } = true;
 }

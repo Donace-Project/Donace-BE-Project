@@ -39,6 +39,7 @@ namespace Application.ProfileAutoMapper
             CreateMap<Event, EventDetailModel>()
                 .Ignore(x => x.IsAppro)
                 .Ignore(x => x.IsSub)
+                .Ignore(x => x.IsFree)
                 .ReverseMap();
 
             CreateMap<EventParticipation, EventParticipationApprovalModel>()
