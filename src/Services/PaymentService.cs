@@ -1,17 +1,13 @@
 ﻿using AutoMapper;
-using CloudinaryDotNet.Actions;
 using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.Payment;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.VNPay;
 using Donace_BE_Project.Shared;
-using HtmlAgilityPack;
-using Nest;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
-using System.Data;
 
 namespace Donace_BE_Project.Services
 {
@@ -24,15 +20,15 @@ namespace Donace_BE_Project.Services
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserProvider _userProvider;
-        private readonly IWebManageService _webManageService;
-        public PaymentService(ILogger<PaymentService> logger, 
+        private readonly Lazy<IWebManageService> _webManageService;
+        public PaymentService(ILogger<PaymentService> logger,
                               IConfiguration configuration,
                               IHttpContextAccessor contextAccessor,
                               IConnectPaymentRepository connectPaymentRepository,
-                              IMapper mapper, 
+                              IMapper mapper,
                               IUnitOfWork unit,
                               IUserProvider userProvider,
-                              IWebManageService webManageService)
+                              Lazy<IWebManageService> webManageService)
         {
             _logger = logger;
             _configuration = configuration;
@@ -43,7 +39,7 @@ namespace Donace_BE_Project.Services
             _userProvider = userProvider;
             _webManageService = webManageService;
         }
-        public async Task<bool> ConnectPaymentVnPayAsync(ConnectVnPayModel input)
+        public async Task<ResponseModel<bool>> ConnectPaymentVnPayAsync(ConnectVnPayModel input)
         {
             try
             {
@@ -51,7 +47,12 @@ namespace Donace_BE_Project.Services
 
                 if (checkExist is not null)
                 {
-                    throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, "Tài khoản này đã liên kết VnPay!");
+                    return new ResponseModel<bool>
+                    {
+                        Success = true,
+                        Code = "Connected",
+                        Result = true,
+                    };
                 }
 
                 string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
@@ -82,11 +83,22 @@ namespace Donace_BE_Project.Services
                     var data = _mapper.Map<ConnectPayment>(input);
                     await _connectPaymentRepository.CreateAsync(data);
                     await _unitOfWork.SaveChangeAsync();
-                    return check;
+                    return new ResponseModel<bool>
+                    {
+                        Success = true,
+                        Code = "Connected",
+                        Result = true,
+                    };
                 }
-                return check;
+
+                return new ResponseModel<bool>
+                {
+                    Success = false,
+                    Message = "Không thể liên kết VNPAY! Vui lòng kiểm tra lại key",
+                    Result = false,
+                };
             }
-            catch(FriendlyException ex)
+            catch (FriendlyException ex)
             {
                 _logger.LogError($"ConnectPaymentVnPay.Exception: {ex.Message}");
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
@@ -100,14 +112,14 @@ namespace Donace_BE_Project.Services
                 var userId = _userProvider.GetUserId();
                 var data = await _connectPaymentRepository.GetByUserAsync(userId);
 
-                if(data is null)
+                if (data is null)
                 {
                     return null;
                 }
 
                 return _mapper.Map<ConnectVnPayModel>(data);
             }
-            catch(FriendlyException ex)
+            catch (FriendlyException ex)
             {
                 _logger.LogError($"GetConenct exception: {ex.Message}", _userProvider.GetUserId());
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
@@ -118,19 +130,13 @@ namespace Donace_BE_Project.Services
         {
             try
             {
-                _webManageService.Driver.Navigate().GoToUrl(url);
-
+                _webManageService.Value.Driver.Navigate().GoToUrl(url);
                 // Tìm thẻ <img> thông qua XPath hoặc các phương thức khác
-                var imageElement = _webManageService.Driver.FindElements(By.XPath("//img[@src='/paymentv2/images/graph/error.svg']"));
-
-
-                if (imageElement.Any())
-                {
-                    return false;
-                }
-                return true;
+                var imageElement = _webManageService.Value.Driver.FindElements(By.XPath("//img[@src='/paymentv2/images/graph/error.svg']"));
+                _webManageService.Value.Close();
+                return !imageElement.Any();
             }
-            catch(FriendlyException ex)
+            catch (FriendlyException ex)
             {
                 _logger.LogError($"CheckConnectPayment exception: {ex.Message}", url);
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);

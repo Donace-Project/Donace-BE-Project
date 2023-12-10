@@ -14,11 +14,12 @@ public class Event : BaseEntity
 
     public string AddressName { get; set; } = string.Empty;
 
-    public float? Lat { get; set; } 
+    public float? Lat { get; set; }
 
     public float? Long { get; set; }
 
     public int Capacity { get; set; }
+    public bool IsUnlimited { get; set; }
 
     public bool IsOverCapacity { get; set; }
 
@@ -49,5 +50,7 @@ public class Event : BaseEntity
 
     public string LocationCode { get; set; } = string.Empty;
 
+    public bool IsOnline { get; set; }
+    public string LinkMeet { get; set; } = string.Empty;
     public string Desc { get; set; } = string.Empty;
 }

@@ -5,7 +5,7 @@ using OpenQA.Selenium.Edge;
 
 namespace Donace_BE_Project.Services
 {
-    public class WebManageService : IWebManageService
+    public class WebManageService : IWebManageService, IDisposable
     {
         public IWebDriver Driver { get; set; }
 
@@ -17,6 +17,11 @@ namespace Donace_BE_Project.Services
         public void Close()
         {
             Driver.Quit();
+        }
+
+        public void Dispose()
+        {
+            Close();
         }
     }
 }

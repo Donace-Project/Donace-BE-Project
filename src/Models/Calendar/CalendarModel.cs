@@ -7,6 +7,7 @@ public class CalendarModel
 {
     [Required]
     public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     public string Cover { get; set; } = string.Empty;
 
@@ -30,6 +31,7 @@ public class CalendarUpdateModel
 
     [Required]
     public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     public string Cover { get; set; } = string.Empty;
 
@@ -50,6 +52,7 @@ public class GetListCalendarModel : CacheSortedBaseModel
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
+    public string Description { get; set; } = string.Empty;
     public int TotalSubcriber { get; set; }
     public string Avatar { get; set; }
     public Guid UserId { get; set; }
@@ -79,6 +82,7 @@ public class CalendarResponseModel : CacheSortedBaseModel
 
     [Required]
     public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     public string Cover { get; set; } = string.Empty;
 
