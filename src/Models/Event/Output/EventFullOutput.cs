@@ -61,4 +61,12 @@ public class EventDetailModel : EventFullOutput
     public bool IsSub { get; set; } = true;
 
     public bool IsAppro { get; set; } = true;
+
+    public bool IsLive
+    {
+        get
+        {
+            return StartDate <= DateTime.Now && DateTime.Now <= EndDate;
+        }
+    }
 }

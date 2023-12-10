@@ -15,5 +15,6 @@ namespace Donace_BE_Project.Interfaces.Repositories
         void Update(TEntity entity);
         void UpdateRange(List<TEntity> entities);
         Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate);
+        Task<List<TEntity>> ToListAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }

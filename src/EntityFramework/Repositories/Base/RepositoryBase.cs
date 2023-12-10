@@ -86,5 +86,10 @@ namespace Donace_BE_Project.EntityFramework.Repository.Base
         {
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }
+
+        public async Task<List<TEntity>> ToListAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).ToListAsync();
+        }
     }
 }

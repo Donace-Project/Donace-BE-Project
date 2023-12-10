@@ -102,6 +102,7 @@ public class EventService : IEventService
 
             var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
 
+
             return result;
         }   
         catch (Exception ex)
@@ -363,6 +364,8 @@ public class EventService : IEventService
                 EventId = events.Id,
                 Status = EventParticipationStatus.Approval
             });
+
+            await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception ex)
         {
@@ -560,4 +563,29 @@ public class EventService : IEventService
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
         }
     }
+
+
+    #region Private method
+
+    public async Task AutoSendMailForUserEventAsync(Guid id)
+    {
+        try
+        {
+            var eventPart = await _eventParticipationRepository.ToListAsync(x => x.IsDeleted == false &&
+                                                                                 x.EventId == id &&
+                                                                                 x.Status == EventParticipationStatus.Going);
+            var events = await _repoEvent.FindAsync(x => x.IsDeleted == false &&
+                                                         x.Id == id);
+
+            var listId = eventPart.Select(x => x.CreatorId).ToList();
+            listId.Add(events.CreatorId);
+
+        }
+        catch(FriendlyException ex)
+        {
+            throw new FriendlyException("400", ex.Message);
+        }
+    }
+
+    #endregion
 }
