@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Models.Oder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Donace_BE_Project.Controllers
@@ -7,9 +9,16 @@ namespace Donace_BE_Project.Controllers
     [ApiController]
     public class OrderController : ControllerBase
     {
-        public OrderController()
+        private readonly IOrderService _orderService;
+        public OrderController(IOrderService orderService)
         {
-            
+            _orderService = orderService;
+        }
+
+        [HttpPost("create")]
+        public async Task<string> CreateAsync(OrderModel input)
+        {
+            return await _orderService.CreateOrderAsync(input);
         }
     }
 }
