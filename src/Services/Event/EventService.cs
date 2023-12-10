@@ -94,10 +94,13 @@ public class EventService : IEventService
                                        _locationService.GetAreaAsync((double)input.Long, (double)input.Lat) :
                                        "VietNam";
 
-            var ticeket = _mapper.Map<Ticket>(input.Ticket);
+            var ticket = _mapper.Map<Ticket>(input.Ticket);
 
             var createdEvent = await _repoEvent.CreateAsync(eventEntity);
-            await _ticketsRepository.CreateAsync(ticeket);
+
+            ticket.EventId = createdEvent.Id;
+
+            await _ticketsRepository.CreateAsync(ticket);
 
             await _unitOfWork.SaveChangeAsync();
 
