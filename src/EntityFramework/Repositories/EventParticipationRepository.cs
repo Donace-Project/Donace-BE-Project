@@ -24,7 +24,7 @@ namespace Donace_BE_Project.EntityFramework.Repositories
 
         public async Task<List<EventParticipation>> GetListByEventAsync(Guid eventId)
         {
-            return await _dbSet.Where(x => x.EventId == eventId && x.IsDeleted == false && x.Status == EventParticipationStatus.Approval).ToListAsync();
+            return await _dbSet.Where(x => x.EventId == eventId && x.IsDeleted == false && x.Status != EventParticipationStatus.NotGoing).ToListAsync();
         }
 
         public async Task<Dictionary<Guid, EventParticipationStatus>> ListIdEventByCalendarAsync(Guid calendarId)
