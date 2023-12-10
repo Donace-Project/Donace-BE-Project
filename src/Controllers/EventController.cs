@@ -51,7 +51,7 @@ public class EventController : ControllerBase
         return await _service.GetPaginationAsync(input);
     }
 
-    [HttpPut()]
+    [HttpPost()]
     public Task UpdateAsync(EventUpdateInput input)
     {
         return _service.UpdateAsync(input);
@@ -87,7 +87,7 @@ public class EventController : ControllerBase
     /// <param name="idPart"></param>
     /// <param name="status"></param>
     /// <returns></returns>
-    [HttpPut("approval")]
+    [HttpPost("approval")]
     public async Task<bool> ApprovalAsync(ApprovalEventInput input)
     {
         return await _service.ApprovalAsync(input);
