@@ -44,6 +44,7 @@ namespace Application.ProfileAutoMapper
             CreateMap<EventParticipation, EventParticipationApprovalModel>()
                 .Ignore(x => x.Name)
                 .Ignore(x => x.Avatar)
+                .Ignore(x => x.Email)
                 .ReverseMap();
             #endregion
 
