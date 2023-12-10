@@ -474,7 +474,7 @@ public class EventService : IEventService
     {
         try
         {
-            var eventPart = await _eventParticipationService.GetByIdAsync(input.IdPart);
+            var eventPart = await _eventParticipationRepository.GetByIdAsync(input.IdPart);
 
             if (eventPart is null)
             {
@@ -497,9 +497,7 @@ public class EventService : IEventService
 
             eventPart.Status = input.Status;
 
-            var data = _mapper.Map<EventParticipation>(eventPart);
-            _eventParticipationRepository.Update(data);
-
+            _eventParticipationRepository.Update(eventPart);
             if(input.Status == EventParticipationStatus.Going)
             {
                 var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
