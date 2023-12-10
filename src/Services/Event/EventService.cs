@@ -540,7 +540,7 @@ public class EventService : IEventService
                 return new List<EventParticipationApprovalModel>();
             }
 
-            var result = _mapper.Map<List<EventParticipationApprovalModel>>(eventParts);
+            var result = _mapper.Map<List<EventParticipationApprovalModel>>(eventParts.OrderByDescending(x => x.CreationTime));
             var listUserId = eventParts.Select(x => x.UserId).ToList();
             var listUser = await _userService.ListUserAsync(listUserId);
 
@@ -549,6 +549,7 @@ public class EventService : IEventService
                 var user = listUser?.Result.FirstOrDefault(x => x.Id == item.UserId);
                 item.Name = user?.UserName;
                 item.Avatar = user?.Avatar;
+                item.Email = user?.Email;
             }
 
             return result;

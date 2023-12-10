@@ -98,7 +98,7 @@ public class EventController : ControllerBase
     /// </summary>
     /// <param name="eventId"></param>
     /// <returns></returns>
-    [HttpGet("user-join-{eventId}")]
+    [HttpGet("user-join/{eventId}")]
     public async Task<List<EventParticipationApprovalModel>> ListUserJoinEventAsync(Guid eventId)
     {
         return await _service.ListUserJoinEventAsync(eventId);
