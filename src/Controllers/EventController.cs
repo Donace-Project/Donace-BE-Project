@@ -88,9 +88,9 @@ public class EventController : ControllerBase
     /// <param name="status"></param>
     /// <returns></returns>
     [HttpPut("approval")]
-    public async Task<bool> ApprovalAsync(Guid idPart, EventParticipationStatus status, string qr)
+    public async Task<bool> ApprovalAsync(ApprovalEventInput input)
     {
-        return await _service.ApprovalAsync(idPart, status, qr);
+        return await _service.ApprovalAsync(input);
     }
 
     /// <summary>

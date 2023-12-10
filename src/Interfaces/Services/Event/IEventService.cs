@@ -19,6 +19,6 @@ public interface IEventService
     Task UserJoinEventAsync(UserJoinEventModel req);
     Task<List<EventFullOutput>> GetListEventByUserAsync(bool isNew);
     Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew, bool isSub);
-    Task<bool> ApprovalAsync(Guid idPart, EventParticipationStatus status, string qr);
+    Task<bool> ApprovalAsync(ApprovalEventInput input);
     Task<List<EventParticipationApprovalModel>> ListUserJoinEventAsync(Guid eventId);
 }

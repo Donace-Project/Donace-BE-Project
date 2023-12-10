@@ -16,6 +16,7 @@ using Donace_BE_Project.Models.Event.Output;
 using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Shared.Pagination;
 using Hangfire;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Newtonsoft.Json;
 using System.Reflection.Metadata.Ecma335;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
@@ -466,11 +467,11 @@ public class EventService : IEventService
     /// <param name="status"></param>
     /// <returns></returns>
     /// <exception cref="FriendlyException"></exception>
-    public async Task<bool> ApprovalAsync(Guid idPart, EventParticipationStatus status, string qr)
+    public async Task<bool> ApprovalAsync(ApprovalEventInput input)
     {
         try
         {
-            var eventPart = await _eventParticipationService.GetByIdAsync(idPart);
+            var eventPart = await _eventParticipationService.GetByIdAsync(input.IdPart);
 
             if (eventPart is null)
             {
@@ -491,12 +492,12 @@ public class EventService : IEventService
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Bạn không có quyền approval");
             }
 
-            eventPart.Status = status;
+            eventPart.Status = input.Status;
 
             var data = _mapper.Map<EventParticipation>(eventPart);
             _eventParticipationRepository.Update(data);
 
-            if(status == EventParticipationStatus.Going)
+            if(input.Status == EventParticipationStatus.Going)
             {
                 var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
                                                                      x.EventId == events.Id);
@@ -508,7 +509,7 @@ public class EventService : IEventService
 
                 await _userTicketsRepository.CreateAsync(new UserTicket
                 {
-                    QrCode = qr,
+                    QrCode = input.Qr,
                     IsChecked = false,
                     UserId = userId,
                     TicketId = ticket.Id,
@@ -521,7 +522,7 @@ public class EventService : IEventService
         catch(FriendlyException ex)
         {
             await _unitOfWork.SaveChangeAsync();
-            _iLogger.LogError($"EventService.Exception: {ex.Message}", JsonConvert.SerializeObject( new { idPart, status }));
+            _iLogger.LogError($"EventService.Exception: {ex.Message}", JsonConvert.SerializeObject( new { input.IdPart, input.Status }));
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
         }
     }
