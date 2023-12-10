@@ -7,5 +7,7 @@ namespace Donace_BE_Project.Interfaces.Services
         Task<string> CreateOrderAsync(OrderModel input);
 
         Task<string> ContinuePaymentAsync(Guid input);
+
+        Task<OrderModel> CallBackAsync(Guid id);
     }
 }

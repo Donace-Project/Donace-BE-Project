@@ -49,4 +49,6 @@ public class EventOutput
     public bool IsHost { get; set; } = true;
     public bool IsOnline { get; set; }
     public string LinkMeet { get; set; } = string.Empty;
+
+    public int Sorted { get; set; }
 }

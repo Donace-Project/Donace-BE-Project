@@ -127,5 +127,24 @@ namespace Donace_BE_Project.Services
             }
         }
 
+        public async Task<OrderModel> CallBackAsync(Guid id)
+        {
+            try
+            {
+                var order = await _orderRepository.FindAsync(x => x.Id == id && x.IsDeleted == false);
+
+                order.Status = Enums.Entity.OrderStatus.Paid;
+
+                _orderRepository.Update(order);
+
+                await _unitOfWork.SaveChangeCusAsync();
+
+                return _mapper.Map<OrderModel>(order);
+            }
+            catch(FriendlyException ex)
+            {
+                throw new FriendlyException("400", ex.Message);
+            }
+        }
     }
 }

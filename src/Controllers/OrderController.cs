@@ -26,5 +26,11 @@ namespace Donace_BE_Project.Controllers
         {
             return await _orderService.ContinuePaymentAsync(id);
         }
+
+        [HttpPost("call-back")]
+        public async Task<OrderModel> CallBackAsync(Guid id)
+        {
+            return await _orderService.CallBackAsync(id);
+        }
     }
 }
