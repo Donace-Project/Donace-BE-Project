@@ -2,6 +2,7 @@
 using Donace_BE_Project.Entities.Calendar;
 using Donace_BE_Project.Entities.Event;
 using Donace_BE_Project.Entities.Payment;
+using Donace_BE_Project.Entities.Ticket;
 using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.Extensions;
 using Donace_BE_Project.Models.Calendar;
@@ -77,6 +78,11 @@ namespace Application.ProfileAutoMapper
             CreateMap<Order, OrderModel>().ReverseMap();
             #endregion
 
+            #region Ticket
+
+            CreateMap<Ticket, TicketDto>().ReverseMap();
+
+            #endregion
 
         }
     }

@@ -2,6 +2,7 @@
 using Donace_BE_Project.Constant;
 using Donace_BE_Project.Entities.Calendar;
 using Donace_BE_Project.Entities.Event;
+using Donace_BE_Project.Entities.Ticket;
 using Donace_BE_Project.Entities.User;
 using Donace_BE_Project.Enums.Entity;
 using Donace_BE_Project.Exceptions;
@@ -36,6 +37,8 @@ public class EventService : IEventService
     private readonly IEventParticipationService _eventParticipationService;
     private readonly IEventParticipationRepository _eventParticipationRepository;
     private readonly IUserService _userService;
+    private readonly ITicketsRepository _ticketsRepository;
+    private readonly IUserTicketsRepository _userTicketsRepository;
 
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
@@ -51,7 +54,9 @@ public class EventService : IEventService
                         ICalendarParticipationService calendarParticipationService,
                         IEventParticipationService eventParticipationService,
                         IEventParticipationRepository eventParticipationRepository,
-                        IUserService userService)
+                        IUserService userService,
+                        ITicketsRepository ticketsRepository,
+                        IUserTicketsRepository userTicketsRepository)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -67,6 +72,8 @@ public class EventService : IEventService
         _eventParticipationService = eventParticipationService;
         _eventParticipationRepository = eventParticipationRepository;
         _userService = userService;
+        _ticketsRepository = ticketsRepository;
+        _userTicketsRepository = userTicketsRepository;
     }
 
     /// <summary>
@@ -86,7 +93,11 @@ public class EventService : IEventService
                                        _locationService.GetAreaAsync((double)input.Long, (double)input.Lat) :
                                        "VietNam";
 
+            var ticeket = _mapper.Map<Ticket>(input.Ticket);
+
             var createdEvent = await _repoEvent.CreateAsync(eventEntity);
+            await _ticketsRepository.CreateAsync(ticeket);
+
             await _unitOfWork.SaveChangeAsync();
 
             var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
@@ -95,6 +106,7 @@ public class EventService : IEventService
         }   
         catch (Exception ex)
         {
+            await _unitOfWork.RollbackAsync();
             throw new FriendlyException("400",ex.Message);
         }
     }
@@ -444,7 +456,14 @@ public class EventService : IEventService
         }
     }
 
-    public async Task<bool> ApprovalAsync(Guid idPart, EventParticipationStatus status)
+    /// <summary>
+    /// Approval User yêu cầu join vào event
+    /// </summary>
+    /// <param name="idPart"></param>
+    /// <param name="status"></param>
+    /// <returns></returns>
+    /// <exception cref="FriendlyException"></exception>
+    public async Task<bool> ApprovalAsync(Guid idPart, EventParticipationStatus status, string qr)
     {
         try
         {
@@ -459,6 +478,11 @@ public class EventService : IEventService
 
             var events = await _repoEvent.FindAsync(x => x.IsDeleted == false && x.Id == eventPart.EventId);
 
+            if(events is null)
+            {
+                throw new FriendlyException("404", "Event không tồn tại");
+            }
+
             if(userId != events.CreatorId)
             {
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Bạn không có quyền approval");
@@ -468,12 +492,32 @@ public class EventService : IEventService
 
             var data = _mapper.Map<EventParticipation>(eventPart);
             _eventParticipationRepository.Update(data);
-            await _unitOfWork.SaveChangeAsync();
 
+            if(status == EventParticipationStatus.Going)
+            {
+                var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                     x.EventId == events.Id);
+                
+                if (ticket is null)
+                {
+                    throw new FriendlyException("404", "Event này chưa tạo ticket");
+                }
+
+                await _userTicketsRepository.CreateAsync(new UserTicket
+                {
+                    QrCode = qr,
+                    IsChecked = false,
+                    UserId = userId,
+                    TicketId = ticket.Id,
+                });
+            }
+
+            await _unitOfWork.SaveChangeAsync();
             return true;
         }
         catch(FriendlyException ex)
         {
+            await _unitOfWork.SaveChangeAsync();
             _iLogger.LogError($"EventService.Exception: {ex.Message}", JsonConvert.SerializeObject( new { idPart, status }));
             throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_EventService, ex.Message);
         }
