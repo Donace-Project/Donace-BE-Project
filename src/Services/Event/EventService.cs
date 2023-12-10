@@ -143,7 +143,8 @@ public class EventService : IEventService
             };
         }
 
-        var listEventSubs = await _repoEvent.GetListAsync(x => listIdEventSubs.ContainsKey(x.Id));
+        var listId = listIdEventSubs.Keys.ToList();
+        var listEventSubs = await _repoEvent.GetListAsync(x => listId.Contains(x.Id));
         var resultSub = _mapper.Map<List<EventOutput>>(listEventSubs);
 
         foreach(var item in resultSub)
@@ -158,10 +159,11 @@ public class EventService : IEventService
                            : "Đã CheckIn";
         }
 
+        result.AddRange(resultSub);
         return new()
         {
             TotalCount = 0,
-            Items = _mapper.Map<List<EventEntity>, List<EventOutput>>(output.OrderByDescending(x => x.StartDate).ToList()),
+            Items = result.OrderByDescending(x => x.StartDate).ToList(),
         };
     }
 
