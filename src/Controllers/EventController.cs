@@ -51,7 +51,7 @@ public class EventController : ControllerBase
         return await _service.GetPaginationAsync(input);
     }
 
-    [HttpPost()]
+    [HttpPost("Update")]
     public Task UpdateAsync(EventUpdateInput input)
     {
         return _service.UpdateAsync(input);
