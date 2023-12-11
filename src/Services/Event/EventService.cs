@@ -40,6 +40,7 @@ public class EventService : IEventService
     private readonly IUserService _userService;
     private readonly ITicketsRepository _ticketsRepository;
     private readonly IUserTicketsRepository _userTicketsRepository;
+    private readonly ICalendarParticipationRepository _calendarParticipationRepository;
 
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
@@ -57,7 +58,8 @@ public class EventService : IEventService
                         IEventParticipationRepository eventParticipationRepository,
                         IUserService userService,
                         ITicketsRepository ticketsRepository,
-                        IUserTicketsRepository userTicketsRepository)
+                        IUserTicketsRepository userTicketsRepository,
+                        ICalendarParticipationRepository calendarParticipationRepository)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -75,6 +77,7 @@ public class EventService : IEventService
         _userService = userService;
         _ticketsRepository = ticketsRepository;
         _userTicketsRepository = userTicketsRepository;
+        _calendarParticipationRepository = calendarParticipationRepository;
     }
 
     /// <summary>
@@ -149,7 +152,7 @@ public class EventService : IEventService
 
         foreach(var item in resultSub)
         {
-            item.IsHost = true;
+            item.IsHost = false;
 
             var statusEnum = listIdEventSubs.Where(x => x.Key == item.Id).Select(x => x.Value).First();
 
@@ -414,6 +417,18 @@ public class EventService : IEventService
 
             checkPart.Status = EventParticipationStatus.Approval;
             _eventParticipationRepository.Update(checkPart);
+
+            var checkPartCalendar = await _calendarParticipationRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                                          x.UserId == userId);
+            if(checkPartCalendar is null)
+            {
+                await _calendarParticipationRepository.CreateAsync(new CalendarParticipation
+                {
+                    CalendarId = events.CalendarId,
+                    UserId = userId,
+                    IsSubcribed = true,
+                });
+            }
 
             await _unitOfWork.SaveChangeAsync();
         }
