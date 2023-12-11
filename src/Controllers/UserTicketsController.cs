@@ -20,5 +20,11 @@ namespace Donace_BE_Project.Controllers
         {
             return await _userTicketsService.CheckInAsync(input);
         }
+
+        [HttpGet("get-ticket")]
+        public async Task<Guid> GetTicketAsync()
+        {
+            return await _userTicketsService.GetTicketAsync();
+        }
     }
 }

@@ -10,14 +10,17 @@ namespace Donace_BE_Project.Services
         private readonly IUserTicketsRepository _userTicketsRepository;
         private readonly IEventRepository _eventRepository;
         private readonly ITicketsRepository _ticketsRepository;
+        private readonly IUserProvider _userProvider;
 
         public UserTicketsService(IUserTicketsRepository userTicketsRepository,
                                   IEventRepository eventRepository,
-                                  ITicketsRepository ticketsRepository)
+                                  ITicketsRepository ticketsRepository,
+                                  IUserProvider userProvider)
         {
             _userTicketsRepository = userTicketsRepository;
             _eventRepository = eventRepository;
             _ticketsRepository = ticketsRepository;
+            _userProvider = userProvider;
         }
         public async Task<UserTicketScanModel> CheckInAsync(UserTicketCheckInModel input)
         {
@@ -54,6 +57,20 @@ namespace Donace_BE_Project.Services
             catch(FriendlyException ex)
             {
                 throw new FriendlyException("500", ex.Message);
+            }
+        }
+
+        public async Task<Guid> GetTicketAsync()
+        {
+            try
+            {
+                var userId = _userProvider.GetUserId();
+                return (await _userTicketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                   x.UserId == userId)).Id;
+            }
+            catch(FriendlyException ex)
+            {
+                throw new FriendlyException("400", ex.Message);
             }
         }
     }

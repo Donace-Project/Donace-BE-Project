@@ -207,6 +207,8 @@ public class EventService : IEventService
                 return result;
         }
 
+        await _userTicketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                    x.UserId == userId);
         return result;
     }
 
