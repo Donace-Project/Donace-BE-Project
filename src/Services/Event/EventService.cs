@@ -207,8 +207,11 @@ public class EventService : IEventService
                 return result;
         }
 
-        await _userTicketsRepository.FindAsync(x => x.IsDeleted == false &&
-                                                    x.UserId == userId);
+        await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                    x.EventId == userId);
+
+        result.IsCheckAppro = (await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                      x.EventId == output.Id)).IsRequireApprove;
         return result;
     }
 
