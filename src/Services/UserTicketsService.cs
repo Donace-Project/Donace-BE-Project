@@ -41,7 +41,7 @@ namespace Donace_BE_Project.Services
                 {
                     throw new FriendlyException("404", "Ticket không tồn tại");
                 }
-                if (!ticket.IsChecked)
+                if (ticket.IsChecked)
                 {
                     throw new FriendlyException("400", "Ticket đã được dùng");
                 }
