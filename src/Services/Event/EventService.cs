@@ -386,7 +386,19 @@ public class EventService : IEventService
             }
 
             events.Capacity--;
-            _repoEvent.Update(events);            
+            _repoEvent.Update(events);
+
+            var checkPartCalendar = await _calendarParticipationRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                                          x.UserId == userId);
+            if (checkPartCalendar is null)
+            {
+                await _calendarParticipationRepository.CreateAsync(new CalendarParticipation
+                {
+                    CalendarId = events.CalendarId,
+                    UserId = userId,
+                    IsSubcribed = true,
+                });
+            }
 
             var checkPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false
                                                                             && x.CreatorId == userId
@@ -418,18 +430,7 @@ public class EventService : IEventService
             checkPart.Status = EventParticipationStatus.Approval;
             _eventParticipationRepository.Update(checkPart);
 
-            var checkPartCalendar = await _calendarParticipationRepository.FindAsync(x => x.IsDeleted == false &&
-                                                                                          x.UserId == userId);
-            if(checkPartCalendar is null)
-            {
-                await _calendarParticipationRepository.CreateAsync(new CalendarParticipation
-                {
-                    CalendarId = events.CalendarId,
-                    UserId = userId,
-                    IsSubcribed = true,
-                });
-            }
-
+            
             await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception ex)
