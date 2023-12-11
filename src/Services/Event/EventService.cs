@@ -359,7 +359,15 @@ public class EventService : IEventService
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "không tìm thấy Event");
             }
 
-            if(req.CalendarId is null)
+            if(events.Capacity == 0)
+            {
+                throw new FriendlyException("400", "Đã hết vé");
+            }
+
+            events.Capacity--;
+            _repoEvent.Update(events);
+
+            if (req.CalendarId is null)
             {
                 await _calendarParticipationService.CreateAsync(new CalendarParticipationModel
                 {
@@ -511,7 +519,14 @@ public class EventService : IEventService
 
             var events = await _repoEvent.FindAsync(x => x.IsDeleted == false && x.Id == eventPart.EventId);
 
-            if(events is null)
+            if (input.Status == EventParticipationStatus.NotGoing)
+            {
+                events.Capacity++;
+                _repoEvent.Update(events);
+                await _unitOfWork.SaveChangeAsync();
+            }
+
+            if (events is null)
             {
                 throw new FriendlyException("404", "Event không tồn tại");
             }
@@ -541,7 +556,7 @@ public class EventService : IEventService
                     UserId = userId,
                     TicketId = ticket.Id,
                 });
-            }
+            }           
 
             await _unitOfWork.SaveChangeAsync();
             return true;
