@@ -269,6 +269,21 @@ public class EventService : IEventService
         }
     }
 
+    public async Task UpdateCoverAsync(EventForUpdateCover input)
+    {
+        try
+        {
+            EventEntity foundEvent = await FindEventAsync(input.Id);
+            foundEvent.Cover = input.Cover;
+            _repoEvent.Update(foundEvent);
+            await _unitOfWork.SaveChangeAsync();
+        }
+        catch (FriendlyException ex)
+        {
+            throw new FriendlyException("", ex.Message);
+        }
+    }
+
     /// <summary>
     /// Cancel event
     /// </summary>

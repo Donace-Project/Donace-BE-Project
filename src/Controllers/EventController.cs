@@ -57,6 +57,12 @@ public class EventController : ControllerBase
         return _service.UpdateAsync(input);
     }
 
+    [HttpPost("Update-cover")]
+    public Task UpdateCoverAsync(EventForUpdateCover input)
+    {
+        return _service.UpdateCoverAsync(input);
+    }
+
     [HttpGet("in")]
     public async Task<List<EventOutput>> GetListEventInLocationAsync(string location)
     {

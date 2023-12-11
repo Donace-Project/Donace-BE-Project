@@ -24,7 +24,7 @@ public class UserController : ControllerBase
         return await _service.GetProfileAsync();
     }
 
-    [HttpPut("update-profile")]
+    [HttpPost("update-profile")]
     public async Task<ResponseModel<UpdateUserModel>> UpdateProfileAsync(UpdateUserModel input)
     {
         return await _service.UpdateProfileAsync(input);
