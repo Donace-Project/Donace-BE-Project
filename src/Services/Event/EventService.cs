@@ -371,7 +371,8 @@ public class EventService : IEventService
             _repoEvent.Update(events);            
 
             var checkPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false
-                                                                            && x.CreatorId == userId);
+                                                                            && x.CreatorId == userId
+                                                                            && x.EventId == events.Id);
 
             if(checkPart is null)
             {
@@ -398,6 +399,8 @@ public class EventService : IEventService
 
             checkPart.Status = EventParticipationStatus.Going;
             _eventParticipationRepository.Update(checkPart);
+
+            await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception ex)
         {
