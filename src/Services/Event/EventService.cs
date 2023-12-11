@@ -350,6 +350,7 @@ public class EventService : IEventService
         try
         {
             var events = await _repoEvent.GetByIdAsync(req.EventId);
+            var userId = _iUserProvider.GetUserId();
 
             if(events is null)
             {
@@ -365,14 +366,34 @@ public class EventService : IEventService
                 });
             }
 
-            await _eventParticipationService.CreateAsync(new EventParticipationModel
-            {
-                UserId = _iUserProvider.GetUserId(),
-                EventId = events.Id,
-                Status = EventParticipationStatus.Approval
-            });
+            var checkPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false
+                                                                            && x.CreatorId == userId);
 
-            await _unitOfWork.SaveChangeAsync();
+            if(checkPart is null)
+            {
+                await _eventParticipationService.CreateAsync(new EventParticipationModel
+                {
+                    UserId = _iUserProvider.GetUserId(),
+                    EventId = events.Id,
+                    Status = EventParticipationStatus.Approval
+                });
+
+                await _unitOfWork.SaveChangeAsync();
+                return;
+            }
+
+            if(checkPart.Status == EventParticipationStatus.Approval)
+            {
+                throw new FriendlyException("400", "user này đã yêu cầu join");
+            }
+
+            if(checkPart.Status != EventParticipationStatus.NotGoing)
+            {
+                throw new FriendlyException("400", "User này đã join vào event");
+            }
+
+            checkPart.Status = EventParticipationStatus.Going;
+            _eventParticipationRepository.Update(checkPart);
         }
         catch (Exception ex)
         {
