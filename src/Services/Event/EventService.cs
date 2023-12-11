@@ -207,6 +207,11 @@ public class EventService : IEventService
                 return result;
         }
 
+        await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                    x.EventId == userId);
+
+        result.IsCheckAppro = (await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                      x.EventId == output.Id)).IsRequireApprove;
         return result;
     }
 
@@ -365,27 +370,50 @@ public class EventService : IEventService
         try
         {
             var events = await _repoEvent.GetByIdAsync(req.EventId);
+            var userId = _iUserProvider.GetUserId();
 
             if(events is null)
             {
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "không tìm thấy Event");
             }
 
-            if(req.CalendarId is null)
+            if(events.Capacity == 0 && !events.IsUnlimited)
             {
-                await _calendarParticipationService.CreateAsync(new CalendarParticipationModel
-                {
-                    CalendarId = events.CalendarId,
-                    UserId = req.UserId,
-                });
+                throw new FriendlyException("400", "Đã hết vé");
             }
 
-            await _eventParticipationService.CreateAsync(new EventParticipationModel
+            events.Capacity--;
+            _repoEvent.Update(events);            
+
+            var checkPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false
+                                                                            && x.CreatorId == userId
+                                                                            && x.EventId == events.Id);
+
+            if(checkPart is null)
             {
-                UserId = _iUserProvider.GetUserId(),
-                EventId = events.Id,
-                Status = EventParticipationStatus.Approval
-            });
+                await _eventParticipationService.CreateAsync(new EventParticipationModel
+                {
+                    UserId = _iUserProvider.GetUserId(),
+                    EventId = events.Id,
+                    Status = EventParticipationStatus.Approval
+                });
+
+                await _unitOfWork.SaveChangeAsync();
+                return;
+            }
+
+            if(checkPart.Status == EventParticipationStatus.Approval)
+            {
+                throw new FriendlyException("400", "user này đã yêu cầu join");
+            }
+
+            if(checkPart.Status != EventParticipationStatus.NotGoing)
+            {
+                throw new FriendlyException("400", "User này đã join vào event");
+            }
+
+            checkPart.Status = EventParticipationStatus.Approval;
+            _eventParticipationRepository.Update(checkPart);
 
             await _unitOfWork.SaveChangeAsync();
         }
@@ -410,7 +438,8 @@ public class EventService : IEventService
                 return _mapper.Map<List<EventFullOutput>>(myEvent.OrderByDescending(x => x.StartDate));
             }
 
-            var subEvents = await _repoEvent.GetListAsync(x => subEventIds.ContainsKey(x.Id));
+            var listIdSub = subEventIds.Keys.ToList();
+            var subEvents = await _repoEvent.GetListAsync(x => listIdSub.Contains(x.Id));
 
             var dataMy = _mapper.Map<List<EventFullOutput>>(myEvent);
             var dataSub = _mapper.Map<List<EventFullOutput>>(subEvents);
@@ -458,7 +487,8 @@ public class EventService : IEventService
                 return new List<EventFullOutput>();
             }
 
-            var listEventSubs = await _repoEvent.GetListAsync(x => listIdEventStatus.ContainsKey(x.Id));
+            var listIdPart = listIdEventStatus.Keys.ToList();
+            var listEventSubs = await _repoEvent.GetListAsync(x => listIdPart.Contains(x.Id));
             var resultSubs = _mapper.Map<List<EventFullOutput>>(listEventSubs);
 
             foreach(var item in resultSubs)
@@ -503,7 +533,14 @@ public class EventService : IEventService
 
             var events = await _repoEvent.FindAsync(x => x.IsDeleted == false && x.Id == eventPart.EventId);
 
-            if(events is null)
+            if (input.Status == EventParticipationStatus.NotGoing)
+            {
+                events.Capacity++;
+                _repoEvent.Update(events);
+                await _unitOfWork.SaveChangeAsync();
+            }
+
+            if (events is null)
             {
                 throw new FriendlyException("404", "Event không tồn tại");
             }
@@ -530,10 +567,10 @@ public class EventService : IEventService
                 {
                     QrCode = input.Qr,
                     IsChecked = false,
-                    UserId = userId,
+                    UserId = input.UserId,
                     TicketId = ticket.Id,
                 });
-            }
+            }           
 
             await _unitOfWork.SaveChangeAsync();
             return true;

@@ -22,4 +22,5 @@ public class ApprovalEventInput
     public Guid IdPart { get; set; }
     public EventParticipationStatus Status { get; set; }
     public string Qr { get; set; }
+    public Guid UserId { get; set; }
 }

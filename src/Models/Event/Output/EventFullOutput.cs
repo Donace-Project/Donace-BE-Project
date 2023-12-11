@@ -71,4 +71,6 @@ public class EventDetailModel : EventFullOutput
     }
 
     public bool IsFree { get;set; } = true;
+
+    public bool IsCheckAppro { get; set; } = true;
 }

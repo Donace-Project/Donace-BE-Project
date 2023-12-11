@@ -5,5 +5,7 @@ namespace Donace_BE_Project.Interfaces.Services
     public interface IUserTicketsService
     {
         Task<UserTicketScanModel> CheckInAsync(UserTicketCheckInModel input);
+
+        Task<Guid> GetTicketAsync();
     }
 }
