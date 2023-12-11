@@ -397,7 +397,7 @@ public class EventService : IEventService
                 throw new FriendlyException("400", "User này đã join vào event");
             }
 
-            checkPart.Status = EventParticipationStatus.Going;
+            checkPart.Status = EventParticipationStatus.Approval;
             _eventParticipationRepository.Update(checkPart);
 
             await _unitOfWork.SaveChangeAsync();
