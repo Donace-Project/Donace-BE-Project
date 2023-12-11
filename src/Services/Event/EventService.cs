@@ -549,13 +549,6 @@ public class EventService : IEventService
 
             var events = await _repoEvent.FindAsync(x => x.IsDeleted == false && x.Id == eventPart.EventId);
 
-            if (input.Status == EventParticipationStatus.NotGoing)
-            {
-                events.Capacity++;
-                _repoEvent.Update(events);
-                await _unitOfWork.SaveChangeAsync();
-            }
-
             if (events is null)
             {
                 throw new FriendlyException("404", "Event không tồn tại");
@@ -564,6 +557,20 @@ public class EventService : IEventService
             if(userId != events.CreatorId)
             {
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Bạn không có quyền approval");
+            }
+
+            if (input.Status == EventParticipationStatus.NotGoing)
+            {
+                events.Capacity++;
+                _repoEvent.Update(events);
+                await _unitOfWork.SaveChangeAsync();
+            }
+
+            if(input.Status == EventParticipationStatus.Going)
+            {
+                events.TotalGuest++;
+                _repoEvent.Update(events);
+                await _unitOfWork.SaveChangeAsync();
             }
 
             eventPart.Status = input.Status;
