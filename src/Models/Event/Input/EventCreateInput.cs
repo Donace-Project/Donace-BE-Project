@@ -64,6 +64,5 @@ public class GetListEventCalendarModel : RequestBaseModel
 public class UserJoinEventModel
 {
     public Guid UserId { get; set; }
-    public Guid? CalendarId { get; set; }
     public Guid EventId { get; set; }
 }

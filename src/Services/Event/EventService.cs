@@ -362,22 +362,13 @@ public class EventService : IEventService
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "không tìm thấy Event");
             }
 
-            if(events.Capacity == 0)
+            if(events.Capacity == 0 && !events.IsUnlimited)
             {
                 throw new FriendlyException("400", "Đã hết vé");
             }
 
             events.Capacity--;
-            _repoEvent.Update(events);
-
-            if (req.CalendarId is null)
-            {
-                await _calendarParticipationService.CreateAsync(new CalendarParticipationModel
-                {
-                    CalendarId = events.CalendarId,
-                    UserId = req.UserId,
-                });
-            }
+            _repoEvent.Update(events);            
 
             var checkPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false
                                                                             && x.CreatorId == userId);
@@ -429,7 +420,8 @@ public class EventService : IEventService
                 return _mapper.Map<List<EventFullOutput>>(myEvent.OrderByDescending(x => x.StartDate));
             }
 
-            var subEvents = await _repoEvent.GetListAsync(x => subEventIds.ContainsKey(x.Id));
+            var listIdSub = subEventIds.Keys.ToList();
+            var subEvents = await _repoEvent.GetListAsync(x => listIdSub.Contains(x.Id));
 
             var dataMy = _mapper.Map<List<EventFullOutput>>(myEvent);
             var dataSub = _mapper.Map<List<EventFullOutput>>(subEvents);
@@ -477,7 +469,8 @@ public class EventService : IEventService
                 return new List<EventFullOutput>();
             }
 
-            var listEventSubs = await _repoEvent.GetListAsync(x => listIdEventStatus.ContainsKey(x.Id));
+            var listIdPart = listIdEventStatus.Keys.ToList();
+            var listEventSubs = await _repoEvent.GetListAsync(x => listIdPart.Contains(x.Id));
             var resultSubs = _mapper.Map<List<EventFullOutput>>(listEventSubs);
 
             foreach(var item in resultSubs)
