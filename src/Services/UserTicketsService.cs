@@ -11,16 +11,18 @@ namespace Donace_BE_Project.Services
         private readonly IEventRepository _eventRepository;
         private readonly ITicketsRepository _ticketsRepository;
         private readonly IUserProvider _userProvider;
-
+        private readonly IUnitOfWork _unitOfWork;
         public UserTicketsService(IUserTicketsRepository userTicketsRepository,
                                   IEventRepository eventRepository,
                                   ITicketsRepository ticketsRepository,
-                                  IUserProvider userProvider)
+                                  IUserProvider userProvider,
+                                  IUnitOfWork unitOfWork)
         {
             _userTicketsRepository = userTicketsRepository;
             _eventRepository = eventRepository;
             _ticketsRepository = ticketsRepository;
             _userProvider = userProvider;
+            _unitOfWork = unitOfWork;
         }
         public async Task<UserTicketScanModel> CheckInAsync(UserTicketCheckInModel input)
         {
@@ -48,6 +50,7 @@ namespace Donace_BE_Project.Services
 
                 ticket.IsChecked = true;
                 _userTicketsRepository.Update(ticket);
+                await _unitOfWork.SaveChangeAsync();
 
                 return new UserTicketScanModel
                 {
