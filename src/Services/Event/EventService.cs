@@ -552,7 +552,7 @@ public class EventService : IEventService
                 {
                     QrCode = input.Qr,
                     IsChecked = false,
-                    UserId = userId,
+                    UserId = input.UserId,
                     TicketId = ticket.Id,
                 });
             }           
