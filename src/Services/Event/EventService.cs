@@ -235,6 +235,10 @@ public class EventService : IEventService
             result.IsHost = true;
             return result;
         }
+        else
+        {
+            result.IsHost = false;
+        }
 
         var check = await _eventParticipationService.StatusEventJoinAsync(userId);
 
@@ -251,6 +255,11 @@ public class EventService : IEventService
                 return result;
         }
 
+        var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                x.EventId == id);
+
+        result.IsFree = ticket != null ? ticket.IsFree : false;
+        result.IsCheckAppro = ticket != null ? ticket.IsRequireApprove : false;
         return result;
     }
 
