@@ -137,26 +137,47 @@ public class CalendarService : ICalendarService
     {
         try
         {
-            var result = new List<GetListCalendarModel>();
             var userId = _userProvider.GetUserId();
 
-            var listcalendar = await _iCalendarRepository.GetListCalendarByIdUser(userId,
-                                                                                  input.PageNumber,
-                                                                                  input.PageSize);
+            var dataCache = await _cacheService.GetListDataByKeyRangeIdAsync<CalendarResponseModel>($"{KeyCache.Calendar}:{userId}");
 
-            if (!listcalendar.Any())
+            if(!dataCache.Any())
             {
-                return new ResponseModel<List<GetListCalendarModel>>(true, "204", new List<GetListCalendarModel>());
+                var listcalendar = await _iCalendarRepository.GetListCalendarByIdUser(userId,
+                                                                                 input.PageNumber,
+                                                                                 input.PageSize);
+
+                if (!listcalendar.Any())
+                {
+                    return new ResponseModel<List<GetListCalendarModel>>(true, "204", new List<GetListCalendarModel>());
+                }
+
+                var totalCount = await _iCalendarRepository.CountAsync(x => x.CreatorId.Equals(userId));
+
+                var dataCaches = _iMapper.Map<List<CalendarResponseModel>>(listcalendar);
+
+                await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", dataCaches);
+
+                return new ResponseModel<List<GetListCalendarModel>>(true,
+                                                                     ResponseCode.Donace_BE_Project_CalendarService_Success,
+                                                                     _iMapper.Map<List<GetListCalendarModel>>(listcalendar),
+                                                                     new(totalCount, input.PageNumber, input.PageSize));
+
             }
+            else
+            {
+                var calendars = dataCache.Where(x => x.IsSub == false).ToList();
+                if (!calendars.Any())
+                {
+                    return new ResponseModel<List<GetListCalendarModel>>(true, "204", new List<GetListCalendarModel>());
+                }
 
-            var totalCount = await _iCalendarRepository.CountAsync(x => x.CreatorId.Equals(userId));
-            
+                return new ResponseModel<List<GetListCalendarModel>>(true,
+                                                                     ResponseCode.Donace_BE_Project_CalendarService_Success,
+                                                                     _iMapper.Map<List<GetListCalendarModel>>(calendars),
+                                                                     new(1000000, input.PageNumber, input.PageSize));
 
-            return new ResponseModel<List<GetListCalendarModel>>(true,
-                                                                 ResponseCode.Donace_BE_Project_CalendarService_Success,
-                                                                 _iMapper.Map<List<GetListCalendarModel>>(listcalendar),
-                                                                 new(totalCount, input.PageNumber, input.PageSize));
-
+            }         
         }
         catch (Exception ex)
         {

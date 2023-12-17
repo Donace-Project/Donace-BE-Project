@@ -15,7 +15,7 @@ namespace Donace_BE_Project.Interfaces.Services
         Task RemoveItemDataBySortedAsync(string key, double sorted);
         Task UpdateValueScoreAsync<T>(string key, double score, T value);
         Task<List<string>> GetListDataByScoreAsync(string key, double score);
-        Task<ResponseModel<List<T>>> GetListDataByKeyRangeIdAsync<T>(string key, int pageNumber, int pageSize);
+        Task<List<T>> GetListDataByKeyRangeIdAsync<T>(string key);
 
     }
 }

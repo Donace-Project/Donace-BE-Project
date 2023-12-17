@@ -98,18 +98,16 @@ namespace Donace_BE_Project.Services
         /// <param name="pageSize"></param>
         /// <returns></returns>
         /// <exception cref="FriendlyException"></exception>
-        public async Task<ResponseModel<List<T>>> GetListDataByKeyRangeIdAsync<T>(string key, int pageNumber, int pageSize)
+        public async Task<List<T>> GetListDataByKeyRangeIdAsync<T>(string key)
         {
             try
             {
                 var db = _iConnectionMultiplexer.GetDatabase();
-                int start = (pageNumber - 1) * pageSize;
-                int stop = start + pageSize - 1;
-                RedisValue[] pagedData = await db.SortedSetRangeByRankAsync(key, start, stop, Order.Descending);
+                RedisValue[] pagedData = await db.SortedSetRangeByRankAsync(key);
 
                 if (!pagedData.Any())
                 {
-                    return new ResponseModel<List<T>>(true, "204", new());
+                    return new List<T>();
                 }
                 var listResult = new List<T>();
                 long totalCount = await db.SortedSetLengthAsync(key);
@@ -118,15 +116,13 @@ namespace Donace_BE_Project.Services
                 {
                     listResult.Add(JsonConvert.DeserializeObject<T>(pagedData[i]));
                 }
-                return new ResponseModel<List<T>>(true, "200", listResult, new PageInfoModel(totalCount, pageNumber, pageSize));
+                return listResult;
             }
             catch(Exception ex)
             {
                 _iLogger.LogError($"CacheService.Exception: {ex.Message}", $"{JsonConvert.SerializeObject(new
                 {
-                    key,
-                    pageNumber,
-                    pageSize
+                    key
                 })}");
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_CacheService, ex.Message);
             }
