@@ -236,6 +236,13 @@ public class EventService : IEventService
 
         var result = _mapper.Map<EventEntity, EventDetailModel>(output);
         var userId = _iUserProvider.GetUserId();
+        var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                x.EventId == id);
+        var userHost = await _iUserRepository.FindByIdAsync(ticket.CreatorId);
+        result.IsFree = ticket != null ? ticket.IsFree : false;
+        result.IsCheckAppro = ticket != null ? ticket.IsRequireApprove : false;
+        result.Price = ticket != null ? ticket.Price : 0;
+        result.Email = userHost != null ? userHost.Email : null;
 
         if (userId == output.CreatorId)
         {
@@ -260,16 +267,7 @@ public class EventService : IEventService
                 result.IsSub = false;
                 result.IsAppro = true;
                 return result;
-        }
-
-        var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
-                                                                x.EventId == id);
-        var userHost = await _iUserRepository.FindByIdAsync(ticket.CreatorId);
-
-        result.IsFree = ticket != null ? ticket.IsFree : false;
-        result.IsCheckAppro = ticket != null ? ticket.IsRequireApprove : false;
-        result.Price = ticket != null ? ticket.Price : 0;
-        result.Email = userHost != null ? userHost.Email : null;
+        }        
         return result;
     }
 
