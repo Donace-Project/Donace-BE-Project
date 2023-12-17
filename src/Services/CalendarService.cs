@@ -80,7 +80,7 @@ public class CalendarService : ICalendarService
             dataOut.IsHost = true;
             dataOut.IsSub = false;
             // Save cache
-            await _cacheService.SetDataSortedAsync($"Calendar:{userId}", new List<CalendarResponseModel>
+            await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", new List<CalendarResponseModel>
             {
                 dataOut
             });
