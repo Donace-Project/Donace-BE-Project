@@ -304,7 +304,7 @@ public class CalendarService : ICalendarService
         {
             var userId = _userProvider.GetUserId();
 
-            var calendar = await _iCalendarRepository.FindAsync(x => x.UserId == userId && x.IsDeleted == false);
+            var calendar = await _iCalendarRepository.FindAsync(x => x.Id == input.CalendarId && x.IsDeleted == false);
 
             if (calendar is null)
             {
@@ -323,7 +323,8 @@ public class CalendarService : ICalendarService
 
             await _iUnitOfWork.SaveChangeAsync();
             var listUserjoin = (await _calendarParticipationRepository.ToListAsync(x => x.IsDeleted == false
-                                                                              && x.IsSubcribed == true)).Select(x => x.UserId).ToList();
+                                                                              && x.IsSubcribed == true))
+                                                                              .Select(x => x.UserId).ToList();
 
             // Update cache user sub
             var dataCache = _iMapper.Map<CalendarResponseModel>(calendar);
