@@ -77,4 +77,6 @@ public class EventDetailModel : EventFullOutput
     public string Email { get; set; }
 
     public decimal Price { get; set; }
+
+    public Guid? CreatorId { get; set; }
 }
