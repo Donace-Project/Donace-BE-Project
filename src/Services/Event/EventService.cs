@@ -10,6 +10,7 @@ using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models;
+using Donace_BE_Project.Models.Calendar;
 using Donace_BE_Project.Models.CalendarParticipation;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
@@ -18,6 +19,7 @@ using Donace_BE_Project.Shared.Pagination;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Newtonsoft.Json;
+using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
@@ -41,7 +43,7 @@ public class EventService : IEventService
     private readonly ITicketsRepository _ticketsRepository;
     private readonly IUserTicketsRepository _userTicketsRepository;
     private readonly ICalendarParticipationRepository _calendarParticipationRepository;
-
+    private readonly ICacheService _cacheService;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
@@ -78,6 +80,7 @@ public class EventService : IEventService
         _ticketsRepository = ticketsRepository;
         _userTicketsRepository = userTicketsRepository;
         _calendarParticipationRepository = calendarParticipationRepository;
+        _cacheService = cacheService;
     }
 
     /// <summary>
@@ -407,6 +410,29 @@ public class EventService : IEventService
                     UserId = userId,
                     IsSubcribed = true,
                 });
+
+                // Update cache
+                                
+                var calendar = await _repoCalendar.FindAsync(x => x.Id == events.CalendarId &&
+                                                                  x.IsDeleted == false);
+
+                var listIdJoin = (await _calendarParticipationRepository.ToListAsync(x => x.IsDeleted == false &&
+                                                                                          x.CalendarId == events.CalendarId &&
+                                                                                          x.IsSubcribed == true))
+                                                                                          .Select(x => x.UserId).ToList();
+                var dataCache = _mapper.Map<CalendarResponseModel>(calendar);
+
+                dataCache.IsHost = false;
+                dataCache.IsSub = true;
+                dataCache.TotalSubcribed += 1;
+                foreach(var id in listIdJoin)
+                {
+                    await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{id}", calendar.Sorted, dataCache);
+                }
+
+                dataCache.IsHost = true;
+                dataCache.IsSub = false;
+                await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", calendar.Sorted, dataCache);
             }
 
             var checkPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false

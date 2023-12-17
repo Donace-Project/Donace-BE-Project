@@ -24,6 +24,7 @@ public class CalendarService : ICalendarService
     private readonly IUserService _iUserService;
     private readonly ICalendarParticipationRepository _calendarParticipationRepository;
     private readonly IEmailSender _emailSender;
+    private readonly ICacheService _cacheService;
 
     public CalendarService(ICalendarRepository iCalendarRepository,
                            ILogger<CalendarService> logger,
@@ -33,7 +34,8 @@ public class CalendarService : ICalendarService
                            ICalendarParticipationService calendarParticipationService,
                            IUserService userService,
                            ICalendarParticipationRepository calendarParticipationRepository,
-                           IEmailSender emailSender)
+                           IEmailSender emailSender,
+                           ICacheService cacheService)
     {
         _iCalendarRepository = iCalendarRepository;
         _iLogger = logger;
@@ -44,6 +46,7 @@ public class CalendarService : ICalendarService
         _iUserService = userService;
         _calendarParticipationRepository = calendarParticipationRepository;
         _emailSender = emailSender;
+        _cacheService = cacheService;
     }
 
     /// <summary>
@@ -74,6 +77,14 @@ public class CalendarService : ICalendarService
             await _iCalendarParticipationService.CreateAsync(calendarParticipation);
 
             var dataOut = _iMapper.Map<Calendar, CalendarResponseModel>(resultCalendar);
+            dataOut.IsHost = true;
+            dataOut.IsSub = false;
+            // Save cache
+            await _cacheService.SetDataSortedAsync($"Calendar:{userId}", new List<CalendarResponseModel>
+            {
+                dataOut
+            });
+
 
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataOut, new());
         }
@@ -266,6 +277,12 @@ public class CalendarService : ICalendarService
             await _iUnitOfWork.SaveChangeAsync();
 
             var dataout = _iMapper.Map<CalendarUpdateModel, CalendarResponseModel>(model);
+            dataout.IsHost = true;
+            dataout.IsSub = false;
+            // Update cache
+
+            //await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", calendarData.Sorted);
+            await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", dataout.Sorted, dataout);
 
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataout, new());
         }
@@ -303,6 +320,23 @@ public class CalendarService : ICalendarService
                 UserId = userId,
                 CalendarId = input.CalendarId
             }, true);
+
+            await _iUnitOfWork.SaveChangeAsync();
+            var listUserjoin = (await _calendarParticipationRepository.ToListAsync(x => x.IsDeleted == false
+                                                                              && x.IsSubcribed == true)).Select(x => x.UserId).ToList();
+
+            // Update cache user sub
+            var dataCache = _iMapper.Map<CalendarResponseModel>(calendar);
+            dataCache.IsSub = true;
+            dataCache.IsHost = false;
+            foreach (var id in listUserjoin)
+            {
+                await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{id}", calendar.Sorted, dataCache);
+            }
+            // update cache user host
+            dataCache.IsHost = true;
+            dataCache.IsSub = false;
+            await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", dataCache.Sorted, dataCache);
         }
         catch (Exception ex)
         {
