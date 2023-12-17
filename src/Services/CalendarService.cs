@@ -323,7 +323,8 @@ public class CalendarService : ICalendarService
 
             await _iUnitOfWork.SaveChangeAsync();
             var listUserjoin = (await _calendarParticipationRepository.ToListAsync(x => x.IsDeleted == false
-                                                                              && x.IsSubcribed == true))
+                                                                                     && x.IsSubcribed == true
+                                                                                     && x.CalendarId == input.CalendarId))
                                                                               .Select(x => x.UserId).ToList();
 
             // Update cache user sub
