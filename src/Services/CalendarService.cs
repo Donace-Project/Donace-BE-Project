@@ -11,6 +11,7 @@ using Nest;
 using Newtonsoft.Json;
 using OpenQA.Selenium.DevTools;
 using System.Net.WebSockets;
+using Calendar = Donace_BE_Project.Entities.Calendar.Calendar;
 
 namespace Donace_BE_Project.Services;
 
