@@ -88,6 +88,9 @@ namespace Application.ProfileAutoMapper
 
             #endregion
 
+
+            CreateMap<EventCacheModel, Event>().ReverseMap();
+
         }
     }
 }

@@ -38,12 +38,13 @@ namespace Donace_BE_Project.Services
 
         }
 
-        public async Task<string> CreateOrderAsync(OrderModel input)
+        public async Task<ResponsePayment> CreateOrderAsync(OrderModel input)
         {
             try
             {
                 var ticket = await _ticketsRepository.FindAsync(x => x.Id == input.TicketId &&
                                                                      x.IsDeleted == false);
+
 
                 if (ticket is null) 
                 {
@@ -68,7 +69,7 @@ namespace Donace_BE_Project.Services
             }
         }
 
-        public async Task<string> ContinuePaymentAsync(Guid id)
+        public async Task<ResponsePayment> ContinuePaymentAsync(Guid id)
         {
             try
             {
@@ -119,7 +120,10 @@ namespace Donace_BE_Project.Services
                 pay.AddRequestData("vnp_ReturnUrl", returnUrl);
                 pay.AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString());
 
-                return pay.CreateRequestUrl(url, paymentManager.SecretKey);
+                return new ResponsePayment
+                {
+                    Url = pay.CreateRequestUrl(url, paymentManager.SecretKey)
+                };
             }
             catch(FriendlyException ex)
             {

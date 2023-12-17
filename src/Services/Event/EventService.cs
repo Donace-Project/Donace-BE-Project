@@ -116,6 +116,11 @@ public class EventService : IEventService
 
             var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
 
+            // Save cache
+            //var dataCache = _mapper.Map<EventCacheModel>(createdEvent);
+            //dataCache.IsFree = ticket.IsFree;
+            //dataCache.IsCheckAppro = ticket.IsRequireApprove;
+            //dataCache.IsHost = true;
 
             return result;
         }   

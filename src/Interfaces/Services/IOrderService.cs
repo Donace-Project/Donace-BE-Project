@@ -4,9 +4,9 @@ namespace Donace_BE_Project.Interfaces.Services
 {
     public interface IOrderService
     {
-        Task<string> CreateOrderAsync(OrderModel input);
+        Task<ResponsePayment> CreateOrderAsync(OrderModel input);
 
-        Task<string> ContinuePaymentAsync(Guid input);
+        Task<ResponsePayment> ContinuePaymentAsync(Guid input);
 
         Task<OrderModel> CallBackAsync(Guid id);
     }
