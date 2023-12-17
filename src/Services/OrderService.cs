@@ -141,7 +141,7 @@ namespace Donace_BE_Project.Services
                 pay.AddRequestData("vnp_IpAddr", Util.GetIpAddress(_contextAccessor.HttpContext));
                 pay.AddRequestData("vnp_Locale", "vn");
                 pay.AddRequestData("vnp_OrderInfo", "Thanh toan don hang");
-                pay.AddRequestData("vnp_OrderType", jsonStr);
+                pay.AddRequestData("vnp_OrderType", "");
                 pay.AddRequestData("vnp_ReturnUrl", returnUrl);
                 pay.AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString());
 
