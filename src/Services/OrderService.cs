@@ -7,6 +7,7 @@ using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models.Oder;
 using Donace_BE_Project.Shared;
 using Nest;
+using Newtonsoft.Json;
 using System.Net.WebSockets;
 
 namespace Donace_BE_Project.Services
@@ -21,6 +22,7 @@ namespace Donace_BE_Project.Services
         private readonly IConnectPaymentRepository _connectPaymentRepository;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IEventService _eventService;
+        private readonly IEventParticipationRepository _eventParticipationRepository;
         public OrderService(IOrderRepository orderRepository,
                             IMapper mapper,
                             IEventRepository eventRepository,
@@ -28,7 +30,8 @@ namespace Donace_BE_Project.Services
                             IUnitOfWork unitOfWork,
                             IConnectPaymentRepository connectPaymentRepository,
                             IHttpContextAccessor contextAccessor,
-                            IEventService eventService)
+                            IEventService eventService,
+                            IEventParticipationRepository eventParticipationRepository)
         {
             _orderRepository = orderRepository;
             _mapper = mapper;
@@ -38,6 +41,7 @@ namespace Donace_BE_Project.Services
             _connectPaymentRepository = connectPaymentRepository;
             _contextAccessor = contextAccessor;
             _eventService = eventService;
+            _eventParticipationRepository = eventParticipationRepository;
         }
 
         public async Task<ResponsePayment> CreateOrderAsync(OrderModel input)
@@ -94,7 +98,21 @@ namespace Donace_BE_Project.Services
                 var userHost = await _ticketsRepository.FindAsync(x => x.Id == order.TicketId &&
                                                                        x.IsDeleted == false &&
                                                                        x.IsFree == false);
+                var eventPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                                   x.EventId == userHost.EventId &&
+                                                                                   x.UserId == order.UserId);
 
+                if(eventPart is null)
+                {
+                    throw new FriendlyException("404", "Bạn chưa join vào event này");
+                }
+                var jsonStr = JsonConvert.SerializeObject(new
+                {
+                    idPart = eventPart.Id,
+                    status = 2,
+                    qr = string.Empty,
+                    orderId = order.Id,
+                });
                 if(userHost is null)
                 {
                     throw new FriendlyException("404", "Không tìm thấy thông tin ticket cần thanh toán");
@@ -123,7 +141,7 @@ namespace Donace_BE_Project.Services
                 pay.AddRequestData("vnp_IpAddr", Util.GetIpAddress(_contextAccessor.HttpContext));
                 pay.AddRequestData("vnp_Locale", "vn");
                 pay.AddRequestData("vnp_OrderInfo", "Thanh toan don hang");
-                pay.AddRequestData("vnp_OrderType", "other");
+                pay.AddRequestData("vnp_OrderType", jsonStr);
                 pay.AddRequestData("vnp_ReturnUrl", returnUrl);
                 pay.AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString());
 
