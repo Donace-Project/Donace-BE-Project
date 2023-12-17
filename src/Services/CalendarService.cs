@@ -257,6 +257,11 @@ public class CalendarService : ICalendarService
                 }
 
                 var dataCaches = _iMapper.Map<List<CalendarResponseModel>>(dataDb);
+                foreach(var item in dataCaches)
+                {
+                    item.IsHost = false;
+                    item.IsSub = true;
+                }
                 await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", dataCaches);
 
                 return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
