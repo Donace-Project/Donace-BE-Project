@@ -3,6 +3,7 @@ using Donace_BE_Project.Entities.Payment;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models.Oder;
 using Donace_BE_Project.Shared;
 using Nest;
@@ -19,14 +20,15 @@ namespace Donace_BE_Project.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConnectPaymentRepository _connectPaymentRepository;
         private readonly IHttpContextAccessor _contextAccessor;
-
+        private readonly IEventService _eventService;
         public OrderService(IOrderRepository orderRepository,
                             IMapper mapper,
                             IEventRepository eventRepository,
                             ITicketsRepository ticketsRepository,
                             IUnitOfWork unitOfWork,
                             IConnectPaymentRepository connectPaymentRepository,
-                            IHttpContextAccessor contextAccessor)
+                            IHttpContextAccessor contextAccessor,
+                            IEventService eventService)
         {
             _orderRepository = orderRepository;
             _mapper = mapper;
@@ -35,7 +37,7 @@ namespace Donace_BE_Project.Services
             _unitOfWork = unitOfWork;
             _connectPaymentRepository = connectPaymentRepository;
             _contextAccessor = contextAccessor;
-
+            _eventService = eventService;
         }
 
         public async Task<ResponsePayment> CreateOrderAsync(OrderModel input)
@@ -57,6 +59,11 @@ namespace Donace_BE_Project.Services
 
                 var result = await _orderRepository.CreateAsync(data);
 
+                await _eventService.UserJoinEventAsync(new Models.Event.Input.UserJoinEventModel
+                {
+                    EventId = ticket.EventId,
+                    UserId = result.CreatorId,
+                });
                 await _unitOfWork.SaveChangeAsync();
 
                 return await ContinuePaymentAsync(result.Id);
