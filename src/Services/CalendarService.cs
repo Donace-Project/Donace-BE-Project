@@ -10,7 +10,9 @@ using Donace_BE_Project.Models.CalendarParticipation;
 using Nest;
 using Newtonsoft.Json;
 using OpenQA.Selenium.DevTools;
+using Org.BouncyCastle.Crypto;
 using System.Net.WebSockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Calendar = Donace_BE_Project.Entities.Calendar.Calendar;
 
 namespace Donace_BE_Project.Services;
@@ -155,6 +157,11 @@ public class CalendarService : ICalendarService
                 var totalCount = await _iCalendarRepository.CountAsync(x => x.CreatorId.Equals(userId));
 
                 var dataCaches = _iMapper.Map<List<CalendarResponseModel>>(listcalendar);
+                foreach(var item in dataCaches)
+                {
+                    item.IsSub = false;
+                    item.IsHost = true;
+                }
 
                 await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", dataCaches);
 
@@ -226,25 +233,44 @@ public class CalendarService : ICalendarService
         try
         {
             var userId = _userProvider.GetUserId();
-            var ids = await _iCalendarParticipationService.GetListIdCalendarByUserIdAsync();
 
-            if (!ids.Result.Any())
+            var dataCache = await _cacheService.GetListDataByKeyRangeIdAsync<CalendarResponseModel>($"{KeyCache.Calendar}:{userId}");
+
+            if (!dataCache.Any())
             {
-                return new ResponseModel<List<GetListCalendarModel>>(true, "200", new List<GetListCalendarModel>(), new PageInfoModel());
+                var ids = await _iCalendarParticipationService.GetListIdCalendarByUserIdAsync();
+
+                if (!ids.Result.Any())
+                {
+                    return new ResponseModel<List<GetListCalendarModel>>(true, "200", new List<GetListCalendarModel>(), new PageInfoModel());
+                }
+
+                var dataDb = await _iCalendarRepository.GetListCalendarPagingByIdsAsync(ids.Result, input.PageNumber, input.PageSize);
+
+                var total = await _iCalendarRepository.CountAsync(x => ids.Result.Contains(x.Id));
+
+                var data = _iMapper.Map<List<GetListCalendarModel>>(dataDb);
+
+                foreach (var item in data)
+                {
+                    item.IsSubcribed = true;
+                }
+
+                var dataCaches = _iMapper.Map<List<CalendarResponseModel>>(dataDb);
+                await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", dataCaches);
+
+                return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
             }
-
-            var dataDb = await _iCalendarRepository.GetListCalendarPagingByIdsAsync(ids.Result, input.PageNumber, input.PageSize);
-
-            var total = await _iCalendarRepository.CountAsync(x => ids.Result.Contains(x.Id));
-
-            var data = _iMapper.Map<List<GetListCalendarModel>>(dataDb);
-
-            foreach(var item in data)
+            else
             {
-                item.IsSubcribed = true;
-            }
+                var dataSub = dataCache.Where(x => x.IsSub == true).ToList();
+                if (!dataSub.Any())
+                {
+                    return new ResponseModel<List<GetListCalendarModel>>(true, "200", new List<GetListCalendarModel>(), new PageInfoModel());
+                }
 
-            return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
+                return new ResponseModel<List<GetListCalendarModel>>(true, "200", _iMapper.Map<List<GetListCalendarModel>>(dataSub), new PageInfoModel(10000, input.PageNumber, input.PageSize));
+            }            
         }
         catch (Exception ex)
         {
