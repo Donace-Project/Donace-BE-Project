@@ -7,6 +7,7 @@ using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.Calendar;
 using Donace_BE_Project.Models.CalendarParticipation;
+using Nest;
 using Newtonsoft.Json;
 using OpenQA.Selenium.DevTools;
 using System.Net.WebSockets;
@@ -281,8 +282,11 @@ public class CalendarService : ICalendarService
             dataout.IsSub = false;
             // Update cache
 
-            //await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", calendarData.Sorted);
-            await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", dataout.Sorted, dataout);
+            await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", calendarData.Sorted);
+            await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", new List<CalendarResponseModel>
+            {
+                dataout
+            });
 
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataout, new());
         }
@@ -311,6 +315,14 @@ public class CalendarService : ICalendarService
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Lịch không tồn tại");
             }
 
+            var checkSub = await _calendarParticipationRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                                 x.CalendarId == input.CalendarId &&
+                                                                                 x.CreatorId == userId);
+            if (checkSub is not null)
+            {
+                throw new FriendlyException("400", "user đã join vào calendar");
+            }
+
             calendar.TotalSubscriber += 1;
 
             _iCalendarRepository.Update(calendar);
@@ -333,11 +345,14 @@ public class CalendarService : ICalendarService
             dataCache.IsHost = false;
             foreach (var id in listUserjoin)
             {
+                await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{id}", dataCache.Sorted);
                 await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{id}", calendar.Sorted, dataCache);
             }
             // update cache user host
             dataCache.IsHost = true;
             dataCache.IsSub = false;
+
+            await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", dataCache.Sorted);
             await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", dataCache.Sorted, dataCache);
         }
         catch (Exception ex)

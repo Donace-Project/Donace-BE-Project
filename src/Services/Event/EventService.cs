@@ -18,6 +18,7 @@ using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Shared.Pagination;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Nest;
 using Newtonsoft.Json;
 using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
@@ -424,14 +425,16 @@ public class EventService : IEventService
 
                 dataCache.IsHost = false;
                 dataCache.IsSub = true;
-                dataCache.TotalSubcribed += 1;
+                dataCache.TotalSubscriber += 1;
                 foreach(var id in listIdJoin)
                 {
+                    await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{id}", calendar.Sorted);
                     await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{id}", calendar.Sorted, dataCache);
                 }
 
                 dataCache.IsHost = true;
                 dataCache.IsSub = false;
+                await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", calendar.Sorted);
                 await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", calendar.Sorted, dataCache);
             }
 
