@@ -173,7 +173,7 @@ namespace Donace_BE_Project.Services
             try
             {
                 var db = _iConnectionMultiplexer.GetDatabase();
-                await db.SortedSetRemoveAsync(key, sorted);
+                await db.SortedSetRemoveRangeByScoreAsync(key, sorted,sorted);
             }
             catch(Exception ex)
             {
