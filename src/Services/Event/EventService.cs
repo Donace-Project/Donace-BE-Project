@@ -45,6 +45,7 @@ public class EventService : IEventService
     private readonly IUserTicketsRepository _userTicketsRepository;
     private readonly ICalendarParticipationRepository _calendarParticipationRepository;
     private readonly ICacheService _cacheService;
+    private readonly IUserRepository _iUserRepository;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
@@ -62,7 +63,8 @@ public class EventService : IEventService
                         IUserService userService,
                         ITicketsRepository ticketsRepository,
                         IUserTicketsRepository userTicketsRepository,
-                        ICalendarParticipationRepository calendarParticipationRepository)
+                        ICalendarParticipationRepository calendarParticipationRepository,
+                        IUserRepository iUserRepository)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -82,6 +84,7 @@ public class EventService : IEventService
         _userTicketsRepository = userTicketsRepository;
         _calendarParticipationRepository = calendarParticipationRepository;
         _cacheService = cacheService;
+        _iUserRepository = iUserRepository;
     }
 
     /// <summary>
@@ -261,9 +264,12 @@ public class EventService : IEventService
 
         var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
                                                                 x.EventId == id);
+        var userHost = await _iUserRepository.FindByIdAsync(ticket.CreatorId);
 
         result.IsFree = ticket != null ? ticket.IsFree : false;
         result.IsCheckAppro = ticket != null ? ticket.IsRequireApprove : false;
+        result.Price = ticket != null ? ticket.Price : 0;
+        result.Email = userHost != null ? userHost.Email : null;
         return result;
     }
 

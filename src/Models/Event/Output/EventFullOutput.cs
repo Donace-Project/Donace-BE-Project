@@ -73,4 +73,8 @@ public class EventDetailModel : EventFullOutput
     public bool IsFree { get;set; } = true;
 
     public bool IsCheckAppro { get; set; } = true;
+
+    public string Email { get; set; }
+
+    public decimal Price { get; set; }
 }
