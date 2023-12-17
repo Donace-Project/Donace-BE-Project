@@ -127,7 +127,7 @@ namespace Donace_BE_Project.Services
                 }
 
                 string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-                string returnUrl = $"http://localhost:3000/payment/success/{eventPart.Id}/{order.Id}";
+                string returnUrl = $"http://localhost:3000/payment/success/{eventPart.Id}/{order.Id}/{order.UserId}";
 
                 VnPayLibrary pay = new VnPayLibrary();
 
