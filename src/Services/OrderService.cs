@@ -109,7 +109,7 @@ namespace Donace_BE_Project.Services
                 }
 
                 string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-                string returnUrl = "https://localhost:3000/payment/success";
+                string returnUrl = "http://localhost:3000/payment/success";
 
                 VnPayLibrary pay = new VnPayLibrary();
 
