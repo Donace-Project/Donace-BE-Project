@@ -23,4 +23,5 @@ public class ApprovalEventInput
     public EventParticipationStatus Status { get; set; }
     public string Qr { get; set; }
     public Guid UserId { get; set; }
+    public bool IsApproved { get; set; } = true;
 }

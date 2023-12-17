@@ -602,7 +602,7 @@ public class EventService : IEventService
                 throw new FriendlyException("404", "Event không tồn tại");
             }
 
-            if(userId != events.CreatorId)
+            if(userId != events.CreatorId && input.IsApproved)
             {
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Bạn không có quyền approval");
             }

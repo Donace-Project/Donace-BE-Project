@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Donace_BE_Project.Entities.Payment;
+using Donace_BE_Project.Enums.Entity;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
@@ -162,11 +163,11 @@ namespace Donace_BE_Project.Services
             {
                 var order = await _orderRepository.FindAsync(x => x.Id == id && x.IsDeleted == false);
 
-                order.Status = Enums.Entity.OrderStatus.Paid;
+                order.Status = OrderStatus.Paid;
 
                 _orderRepository.Update(order);
 
-                await _unitOfWork.SaveChangeCusAsync();
+                await _unitOfWork.SaveChangeAsync();
 
                 return _mapper.Map<OrderModel>(order);
             }
