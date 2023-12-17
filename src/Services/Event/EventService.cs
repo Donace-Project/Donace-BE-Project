@@ -243,6 +243,7 @@ public class EventService : IEventService
         result.IsCheckAppro = ticket != null ? ticket.IsRequireApprove : false;
         result.Price = ticket != null ? ticket.Price : 0;
         result.Email = userHost != null ? userHost.Email : null;
+        result.TicketId = ticket != null ? ticket.Id : null;
 
         if (userId == output.CreatorId)
         {

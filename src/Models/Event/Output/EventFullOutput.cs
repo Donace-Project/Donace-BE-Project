@@ -79,4 +79,6 @@ public class EventDetailModel : EventFullOutput
     public decimal Price { get; set; }
 
     public Guid? CreatorId { get; set; }
+
+    public Guid? TicketId { get; set; }
 }

@@ -92,7 +92,7 @@ namespace Donace_BE_Project.Services
                     throw new FriendlyException("404", "Không tìm thấy thông tin ticket cần thanh toán");
                 }
 
-                var paymentManager = await _connectPaymentRepository.FindAsync(x => x.CreatorId == userHost.CreatorId &&
+                var paymentManager = await _connectPaymentRepository.FindAsync(x => x.Id == order.PaymentMethodId &&
                                                                                     x.IsDeleted == false);
 
                 if(paymentManager is null)
