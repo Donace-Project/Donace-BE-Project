@@ -7,5 +7,6 @@ namespace Donace_BE_Project.Interfaces.Services
     {
         Task<ResponseModel<bool>> ConnectPaymentVnPayAsync(ConnectVnPayModel input);
         Task<ConnectVnPayModel> GetConnectAsync();
+        Task<ConnectVnPayModel> GetConnectAsync(Guid id);
     }
 }

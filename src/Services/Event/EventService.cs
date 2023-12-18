@@ -10,6 +10,7 @@ using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models;
+using Donace_BE_Project.Models.Calendar;
 using Donace_BE_Project.Models.CalendarParticipation;
 using Donace_BE_Project.Models.Event.Input;
 using Donace_BE_Project.Models.Event.Output;
@@ -17,7 +18,9 @@ using Donace_BE_Project.Models.EventParticipation;
 using Donace_BE_Project.Shared.Pagination;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Nest;
 using Newtonsoft.Json;
+using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
 using EventEntity = Donace_BE_Project.Entities.Calendar.Event;
 namespace Donace_BE_Project.Services.Event;
@@ -41,7 +44,8 @@ public class EventService : IEventService
     private readonly ITicketsRepository _ticketsRepository;
     private readonly IUserTicketsRepository _userTicketsRepository;
     private readonly ICalendarParticipationRepository _calendarParticipationRepository;
-
+    private readonly ICacheService _cacheService;
+    private readonly IUserRepository _iUserRepository;
     public EventService(IEventRepository repoEvent,
                         ISectionRepository repoSection,
                         ICalendarRepository repoCalendar,
@@ -59,7 +63,8 @@ public class EventService : IEventService
                         IUserService userService,
                         ITicketsRepository ticketsRepository,
                         IUserTicketsRepository userTicketsRepository,
-                        ICalendarParticipationRepository calendarParticipationRepository)
+                        ICalendarParticipationRepository calendarParticipationRepository,
+                        IUserRepository iUserRepository)
     {
         _repoEvent = repoEvent;
         _unitOfWork = unitOfWork;
@@ -78,6 +83,8 @@ public class EventService : IEventService
         _ticketsRepository = ticketsRepository;
         _userTicketsRepository = userTicketsRepository;
         _calendarParticipationRepository = calendarParticipationRepository;
+        _cacheService = cacheService;
+        _iUserRepository = iUserRepository;
     }
 
     /// <summary>
@@ -109,6 +116,16 @@ public class EventService : IEventService
 
             var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
 
+            //Save cache
+            var dataCache = _mapper.Map<EventCacheModel>(createdEvent);
+            dataCache.IsFree = ticket.IsFree;
+            dataCache.IsCheckAppro = ticket.IsRequireApprove;
+            dataCache.IsHost = true;
+
+            await _cacheService.SetDataSortedAsync($"{KeyCache.CacheEvent}:{createdEvent.CreatorId}", new List<EventCacheModel>
+            {
+                dataCache
+            });
 
             return result;
         }   
@@ -229,6 +246,14 @@ public class EventService : IEventService
 
         var result = _mapper.Map<EventEntity, EventDetailModel>(output);
         var userId = _iUserProvider.GetUserId();
+        var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                x.EventId == id);
+        var userHost = await _iUserRepository.FindByIdAsync(ticket.CreatorId);
+        result.IsFree = ticket != null ? ticket.IsFree : false;
+        result.IsCheckAppro = ticket != null ? ticket.IsRequireApprove : false;
+        result.Price = ticket != null ? ticket.Price : 0;
+        result.Email = userHost != null ? userHost.Email : null;
+        result.TicketId = ticket != null ? ticket.Id : null;
 
         if (userId == output.CreatorId)
         {
@@ -253,13 +278,7 @@ public class EventService : IEventService
                 result.IsSub = false;
                 result.IsAppro = true;
                 return result;
-        }
-
-        var ticket = await _ticketsRepository.FindAsync(x => x.IsDeleted == false &&
-                                                                x.EventId == id);
-
-        result.IsFree = ticket != null ? ticket.IsFree : false;
-        result.IsCheckAppro = ticket != null ? ticket.IsRequireApprove : false;
+        }        
         return result;
     }
 
@@ -279,6 +298,13 @@ public class EventService : IEventService
             _repoEvent.Update(foundEvent);
             await _unitOfWork.SaveChangeAsync();
 
+            var dataCache = _mapper.Map<EventCacheModel>(foundEvent);            
+
+            await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.CacheEvent}:{foundEvent.CreatorId}", foundEvent.Sorted);
+            await _cacheService.SetDataSortedAsync($"{KeyCache.CacheEvent}:{foundEvent.CreatorId}", new List<EventCacheModel>()
+            {
+                dataCache
+            });
         }
         catch(FriendlyException ex)
         {
@@ -407,6 +433,31 @@ public class EventService : IEventService
                     UserId = userId,
                     IsSubcribed = true,
                 });
+
+                // Update cache
+                                
+                var calendar = await _repoCalendar.FindAsync(x => x.Id == events.CalendarId &&
+                                                                  x.IsDeleted == false);
+
+                var listIdJoin = (await _calendarParticipationRepository.ToListAsync(x => x.IsDeleted == false &&
+                                                                                          x.CalendarId == events.CalendarId &&
+                                                                                          x.IsSubcribed == true))
+                                                                                          .Select(x => x.UserId).ToList();
+                var dataCache = _mapper.Map<CalendarResponseModel>(calendar);
+
+                dataCache.IsHost = false;
+                dataCache.IsSub = true;
+                dataCache.TotalSubscriber += 1;
+                foreach(var id in listIdJoin)
+                {
+                    await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{id}", calendar.Sorted);
+                    await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{id}", calendar.Sorted, dataCache);
+                }
+
+                dataCache.IsHost = true;
+                dataCache.IsSub = false;
+                await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", calendar.Sorted);
+                await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", calendar.Sorted, dataCache);
             }
 
             var checkPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false
@@ -493,7 +544,7 @@ public class EventService : IEventService
         }
     }
 
-    public async Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew, bool isSub)
+    public async Task<List<EventOutput>> GetListEventByCalendarAsync(Guid id, bool isNew, bool isSub)
     {
         try
         {            
@@ -502,19 +553,19 @@ public class EventService : IEventService
                 var events = isNew ? await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.EndDate >= DateTime.Now) :
                                  await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.EndDate < DateTime.Now);
 
-                return events.Any() ? _mapper.Map<List<EventFullOutput>>(events) : new List<EventFullOutput>();
+                return events.Any() ? _mapper.Map<List<EventOutput>>(events) : new List<EventOutput>();
             }
 
             var listIdEventStatus = await _eventParticipationService.ListIdEventSubByCalendarAsync(id);
 
             if (!listIdEventStatus.Any())
             {
-                return new List<EventFullOutput>();
+                return new List<EventOutput>();
             }
 
             var listIdPart = listIdEventStatus.Keys.ToList();
             var listEventSubs = await _repoEvent.GetListAsync(x => listIdPart.Contains(x.Id));
-            var resultSubs = _mapper.Map<List<EventFullOutput>>(listEventSubs);
+            var resultSubs = _mapper.Map<List<EventOutput>>(listEventSubs);
 
             foreach(var item in resultSubs)
             {
@@ -563,7 +614,7 @@ public class EventService : IEventService
                 throw new FriendlyException("404", "Event không tồn tại");
             }
 
-            if(userId != events.CreatorId)
+            if(userId != events.CreatorId && input.IsApproved)
             {
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Bạn không có quyền approval");
             }

@@ -1,7 +1,9 @@
 ﻿using Azure;
 using Donace_BE_Project.Constant;
 using Donace_BE_Project.Exceptions;
+using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Models.Eto;
 using Nest;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -19,62 +21,41 @@ namespace Donace_BE_Project.Services
         private readonly ConnectionFactory _connectionFactory;
         private readonly IModel _channel;
         private readonly IConfiguration _configuration;
+        private readonly IHttpClientService _httpClientService;
         public RabbitMQService(ILogger<RabbitMQService> logger,
-                               IConfiguration configuration)
+                               IConfiguration configuration,
+                               IHttpClientService httpClientService)
         {
             _logger = logger;
             _configuration = configuration;
-            _connectionFactory = new ConnectionFactory()
-            {
-                HostName = _configuration.GetSection("RabbitMQ").GetValue<string>("Host"),
-                Port = _configuration.GetSection("RabbitMQ").GetValue<int>("Port"),
-                UserName = _configuration.GetSection("RabbitMQ").GetValue<string>("Username"),
-                Password = _configuration.GetSection("RabbitMQ").GetValue<string>("Password"),
-            };
-            _connection = _connectionFactory.CreateConnection();
-            _channel = _connection.CreateModel();
+            _httpClientService = httpClientService;
         }
 
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var factory = new ConnectionFactory()
-            {
-                HostName = _configuration.GetSection("RabbitMQ").GetValue<string>("Host"),
-                Port = _configuration.GetSection("RabbitMQ").GetValue<int>("Port"),
-                UserName = _configuration.GetSection("RabbitMQ").GetValue<string>("Username"),
-                Password = _configuration.GetSection("RabbitMQ").GetValue<string>("Password"),
-            };
+            var factory = new ConnectionFactory() { HostName = "171.245.205.120", Port = 5672, UserName = "admin", Password = "123456789", VirtualHost = "/" };
 
-            
             using var connection = factory.CreateConnection();
 
             using var channel = connection.CreateModel();
 
-            channel.ExchangeDeclare(exchange: "topic_test", type: ExchangeType.Topic);
-            channel.QueueDeclare("request-queue", exclusive: false);
+            channel.QueueDeclare("request-join-calendar", exclusive: false);
 
             var consumer = new EventingBasicConsumer(channel);
 
-            consumer.Received += (model, ea) =>
+            consumer.Received += async (model, ea) =>
             {
-                Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId}");
+                var body = Encoding.UTF8.GetString(ea.Body.ToArray());
+                var dataRequest = JsonConvert.DeserializeObject<JoinCalendarEto>(body);
 
-                var replyMessage = $"This is your reply: {ea.BasicProperties.CorrelationId}";
-
-                var body = Encoding.UTF8.GetBytes(replyMessage);
-
-                channel.BasicPublish("", ea.BasicProperties.ReplyTo, null, body);
-
-                Console.WriteLine(replyMessage);
+                await _httpClientService.CallApiPost(@"http://171.245.205.120:8082/", "api/Calendar/user-join", dataRequest);
+                channel.BasicPublish("", ea.BasicProperties.ReplyTo, null, Encoding.UTF8.GetBytes(body));
             };
 
-            channel.BasicConsume(queue: "request-queue", autoAck: true, consumer: consumer);
+            channel.BasicConsume(queue: "request-join-calendar", autoAck: true, consumer: consumer);
 
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await Task.Delay(1000, stoppingToken); // Delay để cho BackgroundService chạy liên tục
-            }
+            await Task.Delay(-1, stoppingToken);
         }
     }
 }

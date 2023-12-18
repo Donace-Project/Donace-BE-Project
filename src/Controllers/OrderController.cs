@@ -16,13 +16,13 @@ namespace Donace_BE_Project.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<string> CreateAsync(OrderModel input)
+        public async Task<ResponsePayment> CreateAsync(OrderModel input)
         {
             return await _orderService.CreateOrderAsync(input);
         }
 
         [HttpPost("continue")]
-        public async Task<string> OrderContinueAsync(Guid id)
+        public async Task<ResponsePayment> OrderContinueAsync(Guid id)
         {
             return await _orderService.ContinuePaymentAsync(id);
         }

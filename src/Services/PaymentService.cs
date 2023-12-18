@@ -126,6 +126,26 @@ namespace Donace_BE_Project.Services
             }
         }
 
+        public async Task<ConnectVnPayModel> GetConnectAsync(Guid id)
+        {
+            try
+            {
+                var data = await _connectPaymentRepository.GetByUserAsync(id);
+
+                if (data is null)
+                {
+                    return null;
+                }
+
+                return _mapper.Map<ConnectVnPayModel>(data);
+            }
+            catch (FriendlyException ex)
+            {
+                _logger.LogError($"GetConenct exception: {ex.Message}", _userProvider.GetUserId());
+                throw new FriendlyException(ExceptionCode.Donace_BE_Project_Bad_Request_PaymentService, ex.Message);
+            }
+        }
+
         private bool CheckConnectPaymentAsync(string url)
         {
             try

@@ -1,5 +1,6 @@
 ﻿using Donace_BE_Project.Enums.Entity;
 using Donace_BE_Project.Models.Cache;
+using Newtonsoft.Json;
 
 namespace Donace_BE_Project.Models.Event.Output;
 
@@ -62,6 +63,7 @@ public class EventDetailModel : EventFullOutput
 
     public bool IsAppro { get; set; } = true;
 
+    [JsonIgnore]
     public bool IsLive
     {
         get
@@ -73,4 +75,17 @@ public class EventDetailModel : EventFullOutput
     public bool IsFree { get;set; } = true;
 
     public bool IsCheckAppro { get; set; } = true;
+
+    public string Email { get; set; }
+
+    public decimal Price { get; set; }
+
+    public Guid? CreatorId { get; set; }
+
+    public Guid? TicketId { get; set; }
+}
+
+public class EventCacheModel : EventDetailModel
+{
+    public string Status { get; set; } = string.Empty;
 }

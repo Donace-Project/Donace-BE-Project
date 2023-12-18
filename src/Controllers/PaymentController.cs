@@ -38,6 +38,10 @@ namespace Donace_BE_Project.Controllers
         {
             return Ok(await _paymentService.GetConnectAsync());
         }
-        
+        [HttpGet("get-connect/{id}")]
+        public async Task<IActionResult> GetConnectAsync(Guid id)
+        {
+            return Ok(await _paymentService.GetConnectAsync(id));
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Donace_BE_Project.Extensions;
 using Donace_BE_Project.Services;
+using Donace_BE_Project.Services.RabbitMQ;
 using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,7 @@ builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJwt(_configuration);
 builder.Services.RegisterAppServices(_configuration);
 builder.Services.AddHostedService<RabbitMQService>();
+builder.Services.AddHostedService<RabbitMQJoinEventService>();
 
 var app = builder.Build();
 app.UseCors(builder => builder

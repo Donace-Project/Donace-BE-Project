@@ -7,9 +7,13 @@ using Donace_BE_Project.Interfaces.Services;
 using Donace_BE_Project.Models;
 using Donace_BE_Project.Models.Calendar;
 using Donace_BE_Project.Models.CalendarParticipation;
+using Nest;
 using Newtonsoft.Json;
 using OpenQA.Selenium.DevTools;
+using Org.BouncyCastle.Crypto;
 using System.Net.WebSockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Calendar = Donace_BE_Project.Entities.Calendar.Calendar;
 
 namespace Donace_BE_Project.Services;
 
@@ -24,6 +28,7 @@ public class CalendarService : ICalendarService
     private readonly IUserService _iUserService;
     private readonly ICalendarParticipationRepository _calendarParticipationRepository;
     private readonly IEmailSender _emailSender;
+    private readonly ICacheService _cacheService;
 
     public CalendarService(ICalendarRepository iCalendarRepository,
                            ILogger<CalendarService> logger,
@@ -33,7 +38,8 @@ public class CalendarService : ICalendarService
                            ICalendarParticipationService calendarParticipationService,
                            IUserService userService,
                            ICalendarParticipationRepository calendarParticipationRepository,
-                           IEmailSender emailSender)
+                           IEmailSender emailSender,
+                           ICacheService cacheService)
     {
         _iCalendarRepository = iCalendarRepository;
         _iLogger = logger;
@@ -44,6 +50,7 @@ public class CalendarService : ICalendarService
         _iUserService = userService;
         _calendarParticipationRepository = calendarParticipationRepository;
         _emailSender = emailSender;
+        _cacheService = cacheService;
     }
 
     /// <summary>
@@ -74,6 +81,14 @@ public class CalendarService : ICalendarService
             await _iCalendarParticipationService.CreateAsync(calendarParticipation);
 
             var dataOut = _iMapper.Map<Calendar, CalendarResponseModel>(resultCalendar);
+            dataOut.IsHost = true;
+            dataOut.IsSub = false;
+            // Save cache
+            await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", new List<CalendarResponseModel>
+            {
+                dataOut
+            });
+
 
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataOut, new());
         }
@@ -124,26 +139,52 @@ public class CalendarService : ICalendarService
     {
         try
         {
-            var result = new List<GetListCalendarModel>();
             var userId = _userProvider.GetUserId();
 
-            var listcalendar = await _iCalendarRepository.GetListCalendarByIdUser(userId,
-                                                                                  input.PageNumber,
-                                                                                  input.PageSize);
+            var dataCache = await _cacheService.GetListDataByKeyRangeIdAsync<CalendarResponseModel>($"{KeyCache.Calendar}:{userId}");
 
-            if (!listcalendar.Any())
+            if(!dataCache.Any())
             {
-                return new ResponseModel<List<GetListCalendarModel>>(true, "204", new List<GetListCalendarModel>());
+                var listcalendar = await _iCalendarRepository.GetListCalendarByIdUser(userId,
+                                                                                 input.PageNumber,
+                                                                                 input.PageSize);
+
+                if (!listcalendar.Any())
+                {
+                    return new ResponseModel<List<GetListCalendarModel>>(true, "204", new List<GetListCalendarModel>());
+                }
+
+                var totalCount = await _iCalendarRepository.CountAsync(x => x.CreatorId.Equals(userId));
+
+                var dataCaches = _iMapper.Map<List<CalendarResponseModel>>(listcalendar);
+                foreach(var item in dataCaches)
+                {
+                    item.IsSub = false;
+                    item.IsHost = true;
+                }
+
+                await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", dataCaches);
+
+                return new ResponseModel<List<GetListCalendarModel>>(true,
+                                                                     ResponseCode.Donace_BE_Project_CalendarService_Success,
+                                                                     _iMapper.Map<List<GetListCalendarModel>>(listcalendar),
+                                                                     new(totalCount, input.PageNumber, input.PageSize));
+
             }
+            else
+            {
+                var calendars = dataCache.Where(x => x.IsSub == false).ToList();
+                if (!calendars.Any())
+                {
+                    return new ResponseModel<List<GetListCalendarModel>>(true, "204", new List<GetListCalendarModel>());
+                }
 
-            var totalCount = await _iCalendarRepository.CountAsync(x => x.CreatorId.Equals(userId));
-            
+                return new ResponseModel<List<GetListCalendarModel>>(true,
+                                                                     ResponseCode.Donace_BE_Project_CalendarService_Success,
+                                                                     _iMapper.Map<List<GetListCalendarModel>>(calendars),
+                                                                     new(1000000, input.PageNumber, input.PageSize));
 
-            return new ResponseModel<List<GetListCalendarModel>>(true,
-                                                                 ResponseCode.Donace_BE_Project_CalendarService_Success,
-                                                                 _iMapper.Map<List<GetListCalendarModel>>(listcalendar),
-                                                                 new(totalCount, input.PageNumber, input.PageSize));
-
+            }         
         }
         catch (Exception ex)
         {
@@ -192,25 +233,49 @@ public class CalendarService : ICalendarService
         try
         {
             var userId = _userProvider.GetUserId();
-            var ids = await _iCalendarParticipationService.GetListIdCalendarByUserIdAsync();
 
-            if (!ids.Result.Any())
+            var dataCache = await _cacheService.GetListDataByKeyRangeIdAsync<CalendarResponseModel>($"{KeyCache.Calendar}:{userId}");
+
+            if (!dataCache.Any())
             {
-                return new ResponseModel<List<GetListCalendarModel>>(true, "200", new List<GetListCalendarModel>(), new PageInfoModel());
+                var ids = await _iCalendarParticipationService.GetListIdCalendarByUserIdAsync();
+
+                if (!ids.Result.Any())
+                {
+                    return new ResponseModel<List<GetListCalendarModel>>(true, "200", new List<GetListCalendarModel>(), new PageInfoModel());
+                }
+
+                var dataDb = await _iCalendarRepository.GetListCalendarPagingByIdsAsync(ids.Result, input.PageNumber, input.PageSize);
+
+                var total = await _iCalendarRepository.CountAsync(x => ids.Result.Contains(x.Id));
+
+                var data = _iMapper.Map<List<GetListCalendarModel>>(dataDb);
+
+                foreach (var item in data)
+                {
+                    item.IsSubcribed = true;
+                }
+
+                var dataCaches = _iMapper.Map<List<CalendarResponseModel>>(dataDb);
+                foreach(var item in dataCaches)
+                {
+                    item.IsHost = false;
+                    item.IsSub = true;
+                }
+                await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{userId}", dataCaches);
+
+                return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
             }
-
-            var dataDb = await _iCalendarRepository.GetListCalendarPagingByIdsAsync(ids.Result, input.PageNumber, input.PageSize);
-
-            var total = await _iCalendarRepository.CountAsync(x => ids.Result.Contains(x.Id));
-
-            var data = _iMapper.Map<List<GetListCalendarModel>>(dataDb);
-
-            foreach(var item in data)
+            else
             {
-                item.IsSubcribed = true;
-            }
+                var dataSub = dataCache.Where(x => x.IsSub == true).ToList();
+                if (!dataSub.Any())
+                {
+                    return new ResponseModel<List<GetListCalendarModel>>(true, "200", new List<GetListCalendarModel>(), new PageInfoModel());
+                }
 
-            return new ResponseModel<List<GetListCalendarModel>>(true, "200", data, new PageInfoModel(total, input.PageNumber, input.PageSize));
+                return new ResponseModel<List<GetListCalendarModel>>(true, "200", _iMapper.Map<List<GetListCalendarModel>>(dataSub), new PageInfoModel(10000, input.PageNumber, input.PageSize));
+            }            
         }
         catch (Exception ex)
         {
@@ -266,6 +331,27 @@ public class CalendarService : ICalendarService
             await _iUnitOfWork.SaveChangeAsync();
 
             var dataout = _iMapper.Map<CalendarUpdateModel, CalendarResponseModel>(model);
+            dataout.IsHost = true;
+            dataout.IsSub = false;
+            // Update cache
+
+            await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", calendarData.Sorted);
+            await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", new List<CalendarResponseModel>
+            {
+                dataout
+            });
+
+            dataout.IsHost = false;
+            dataout.IsSub = true;
+            var listUserJoin = (await _calendarParticipationRepository.ToListAsync(x => x.IsDeleted == false &&
+                                                                                       x.IsSubcribed == true &&
+                                                                                       x.CalendarId == dataout.Id))
+                                                                                       .Select(x => x.UserId);                                   
+            foreach(var id in listUserJoin)
+            {
+                await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{id}", calendarData.Sorted);
+                await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", new List<CalendarResponseModel> { dataout });
+            }
 
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataout, new());
         }
@@ -287,11 +373,19 @@ public class CalendarService : ICalendarService
         {
             var userId = _userProvider.GetUserId();
 
-            var calendar = await _iCalendarRepository.FindAsync(x => x.UserId == userId && x.IsDeleted == false);
+            var calendar = await _iCalendarRepository.FindAsync(x => x.Id == input.CalendarId && x.IsDeleted == false);
 
             if (calendar is null)
             {
                 throw new FriendlyException(ExceptionCode.Donace_BE_Project_Not_Found_EventService, "Lịch không tồn tại");
+            }
+
+            var checkSub = await _calendarParticipationRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                                 x.CalendarId == input.CalendarId &&
+                                                                                 x.CreatorId == userId);
+            if (checkSub is not null)
+            {
+                throw new FriendlyException("400", "user đã join vào calendar");
             }
 
             calendar.TotalSubscriber += 1;
@@ -303,6 +397,28 @@ public class CalendarService : ICalendarService
                 UserId = userId,
                 CalendarId = input.CalendarId
             }, true);
+
+            await _iUnitOfWork.SaveChangeAsync();
+            var listUserjoin = (await _calendarParticipationRepository.ToListAsync(x => x.IsDeleted == false
+                                                                                     && x.IsSubcribed == true
+                                                                                     && x.CalendarId == input.CalendarId))
+                                                                              .Select(x => x.UserId).ToList();
+
+            // Update cache user sub
+            var dataCache = _iMapper.Map<CalendarResponseModel>(calendar);
+            dataCache.IsSub = true;
+            dataCache.IsHost = false;
+            foreach (var id in listUserjoin)
+            {
+                await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{id}", dataCache.Sorted);
+                await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{id}", calendar.Sorted, dataCache);
+            }
+            // update cache user host
+            dataCache.IsHost = true;
+            dataCache.IsSub = false;
+
+            await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", dataCache.Sorted);
+            await _cacheService.UpdateValueScoreAsync($"{KeyCache.Calendar}:{calendar.CreatorId}", dataCache.Sorted, dataCache);
         }
         catch (Exception ex)
         {

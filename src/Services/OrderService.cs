@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
 using Donace_BE_Project.Entities.Payment;
+using Donace_BE_Project.Enums.Entity;
 using Donace_BE_Project.Exceptions;
 using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Interfaces.Services.Event;
 using Donace_BE_Project.Models.Oder;
 using Donace_BE_Project.Shared;
 using Nest;
+using Newtonsoft.Json;
 using System.Net.WebSockets;
 
 namespace Donace_BE_Project.Services
@@ -19,14 +22,17 @@ namespace Donace_BE_Project.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConnectPaymentRepository _connectPaymentRepository;
         private readonly IHttpContextAccessor _contextAccessor;
-
+        private readonly IEventService _eventService;
+        private readonly IEventParticipationRepository _eventParticipationRepository;
         public OrderService(IOrderRepository orderRepository,
                             IMapper mapper,
                             IEventRepository eventRepository,
                             ITicketsRepository ticketsRepository,
                             IUnitOfWork unitOfWork,
                             IConnectPaymentRepository connectPaymentRepository,
-                            IHttpContextAccessor contextAccessor)
+                            IHttpContextAccessor contextAccessor,
+                            IEventService eventService,
+                            IEventParticipationRepository eventParticipationRepository)
         {
             _orderRepository = orderRepository;
             _mapper = mapper;
@@ -35,15 +41,17 @@ namespace Donace_BE_Project.Services
             _unitOfWork = unitOfWork;
             _connectPaymentRepository = connectPaymentRepository;
             _contextAccessor = contextAccessor;
-
+            _eventService = eventService;
+            _eventParticipationRepository = eventParticipationRepository;
         }
 
-        public async Task<string> CreateOrderAsync(OrderModel input)
+        public async Task<ResponsePayment> CreateOrderAsync(OrderModel input)
         {
             try
             {
                 var ticket = await _ticketsRepository.FindAsync(x => x.Id == input.TicketId &&
                                                                      x.IsDeleted == false);
+
 
                 if (ticket is null) 
                 {
@@ -56,6 +64,11 @@ namespace Donace_BE_Project.Services
 
                 var result = await _orderRepository.CreateAsync(data);
 
+                await _eventService.UserJoinEventAsync(new Models.Event.Input.UserJoinEventModel
+                {
+                    EventId = ticket.EventId,
+                    UserId = result.CreatorId,
+                });
                 await _unitOfWork.SaveChangeAsync();
 
                 return await ContinuePaymentAsync(result.Id);
@@ -68,7 +81,7 @@ namespace Donace_BE_Project.Services
             }
         }
 
-        public async Task<string> ContinuePaymentAsync(Guid id)
+        public async Task<ResponsePayment> ContinuePaymentAsync(Guid id)
         {
             try
             {
@@ -87,12 +100,22 @@ namespace Donace_BE_Project.Services
                                                                        x.IsDeleted == false &&
                                                                        x.IsFree == false);
 
+                var eventPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false &&
+                                                                                   x.EventId == userHost.EventId &&
+                                                                                   x.UserId == order.UserId);
+
+                if(eventPart is null)
+                {
+                    throw new FriendlyException("404", "Bạn chưa join vào event này");
+                }
+
+
                 if(userHost is null)
                 {
                     throw new FriendlyException("404", "Không tìm thấy thông tin ticket cần thanh toán");
                 }
 
-                var paymentManager = await _connectPaymentRepository.FindAsync(x => x.CreatorId == userHost.CreatorId &&
+                var paymentManager = await _connectPaymentRepository.FindAsync(x => x.Id == order.PaymentMethodId &&
                                                                                     x.IsDeleted == false);
 
                 if(paymentManager is null)
@@ -101,14 +124,14 @@ namespace Donace_BE_Project.Services
                 }
 
                 string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-                string returnUrl = "https://localhost:3000/payment/success";
+                string returnUrl = $"http://localhost:3000/payment/success/{eventPart.Id}/{order.Id}/{order.UserId}";
 
                 VnPayLibrary pay = new VnPayLibrary();
 
                 pay.AddRequestData("vnp_Version", "2.1.0");
                 pay.AddRequestData("vnp_Command", "pay");
                 pay.AddRequestData("vnp_TmnCode", paymentManager.Key);
-                pay.AddRequestData("vnp_Amount", "1000000");
+                pay.AddRequestData("vnp_Amount", $"{userHost.Price * 10}");
                 pay.AddRequestData("vnp_BankCode", "");
                 pay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
                 pay.AddRequestData("vnp_CurrCode", "VND");
@@ -119,7 +142,10 @@ namespace Donace_BE_Project.Services
                 pay.AddRequestData("vnp_ReturnUrl", returnUrl);
                 pay.AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString());
 
-                return pay.CreateRequestUrl(url, paymentManager.SecretKey);
+                return new ResponsePayment
+                {
+                    Url = pay.CreateRequestUrl(url, paymentManager.SecretKey)
+                };
             }
             catch(FriendlyException ex)
             {
@@ -133,11 +159,11 @@ namespace Donace_BE_Project.Services
             {
                 var order = await _orderRepository.FindAsync(x => x.Id == id && x.IsDeleted == false);
 
-                order.Status = Enums.Entity.OrderStatus.Paid;
+                order.Status = OrderStatus.Paid;
 
                 _orderRepository.Update(order);
 
-                await _unitOfWork.SaveChangeCusAsync();
+                await _unitOfWork.SaveChangeAsync();
 
                 return _mapper.Map<OrderModel>(order);
             }

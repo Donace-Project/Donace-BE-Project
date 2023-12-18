@@ -60,6 +60,8 @@ namespace Application.ProfileAutoMapper
                 .ReverseMap();
 
             CreateMap<Calendar, CalendarResponseModel>().ReverseMap();
+
+            CreateMap<CalendarResponseModel, GetListCalendarModel>().ReverseMap();
             #endregion
 
             #region CalendarParticipation
@@ -85,6 +87,9 @@ namespace Application.ProfileAutoMapper
             CreateMap<Ticket, TicketDto>().ReverseMap();
 
             #endregion
+
+
+            CreateMap<EventCacheModel, Event>().ReverseMap();
 
         }
     }

@@ -20,4 +20,9 @@ namespace Donace_BE_Project.Models.Oder
         [Required]
         public Guid TicketId { get; set; }
     }
+
+    public class ResponsePayment
+    {
+        public string Url { get; set; } = string.Empty;
+    }
 }
