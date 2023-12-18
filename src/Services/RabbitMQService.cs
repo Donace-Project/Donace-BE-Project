@@ -1,7 +1,9 @@
 ﻿using Azure;
 using Donace_BE_Project.Constant;
 using Donace_BE_Project.Exceptions;
+using Donace_BE_Project.Interfaces.Repositories;
 using Donace_BE_Project.Interfaces.Services;
+using Donace_BE_Project.Models.Eto;
 using Nest;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -19,11 +21,14 @@ namespace Donace_BE_Project.Services
         private readonly ConnectionFactory _connectionFactory;
         private readonly IModel _channel;
         private readonly IConfiguration _configuration;
+        private readonly IHttpClientService _httpClientService;
         public RabbitMQService(ILogger<RabbitMQService> logger,
-                               IConfiguration configuration)
+                               IConfiguration configuration,
+                               IHttpClientService httpClientService)
         {
             _logger = logger;
             _configuration = configuration;
+            _httpClientService = httpClientService;
         }
 
 
@@ -35,22 +40,20 @@ namespace Donace_BE_Project.Services
 
             using var channel = connection.CreateModel();
 
-            channel.QueueDeclare("resquest-queue", exclusive: false);
+            channel.QueueDeclare("request-join-calendar", exclusive: false);
 
             var consumer = new EventingBasicConsumer(channel);
 
-            consumer.Received += (model, ea) =>
+            consumer.Received += async (model, ea) =>
             {
-                Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId}");
+                var body = Encoding.UTF8.GetString(ea.Body.ToArray());
+                var dataRequest = JsonConvert.DeserializeObject<JoinCalendarEto>(body);
 
-                var replyMessage = $"This is your reply test: {ea.BasicProperties.CorrelationId}";
-
-                var body = Encoding.UTF8.GetBytes(replyMessage);
-
-                channel.BasicPublish("", ea.BasicProperties.ReplyTo, null, body);
+                await _httpClientService.CallApiPost(@"http://171.245.205.120:8082/", "api/Calendar/user-join", dataRequest);
+                channel.BasicPublish("", ea.BasicProperties.ReplyTo, null, Encoding.UTF8.GetBytes(body));
             };
 
-            channel.BasicConsume(queue: "resquest-queue", autoAck: true, consumer: consumer);
+            channel.BasicConsume(queue: "request-join-calendar", autoAck: true, consumer: consumer);
 
             await Task.Delay(-1, stoppingToken);
         }
