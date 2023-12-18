@@ -82,7 +82,7 @@ public class EventController : ControllerBase
     }
 
     [HttpGet("list-event-by-calendar-{id}-{isNew}-{isSub}")]
-    public async Task<List<EventFullOutput>> ListEventByCalendarAsync(Guid id, bool isNew = true, bool isSub = true)
+    public async Task<List<EventOutput>> ListEventByCalendarAsync(Guid id, bool isNew = true, bool isSub = true)
     {
         return await _service.GetListEventByCalendarAsync(id, isNew, isSub);
     }

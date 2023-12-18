@@ -532,7 +532,7 @@ public class EventService : IEventService
         }
     }
 
-    public async Task<List<EventFullOutput>> GetListEventByCalendarAsync(Guid id, bool isNew, bool isSub)
+    public async Task<List<EventOutput>> GetListEventByCalendarAsync(Guid id, bool isNew, bool isSub)
     {
         try
         {            
@@ -541,19 +541,19 @@ public class EventService : IEventService
                 var events = isNew ? await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.EndDate >= DateTime.Now) :
                                  await _repoEvent.GetListAsync(x => x.CalendarId.Equals(id) && x.EndDate < DateTime.Now);
 
-                return events.Any() ? _mapper.Map<List<EventFullOutput>>(events) : new List<EventFullOutput>();
+                return events.Any() ? _mapper.Map<List<EventOutput>>(events) : new List<EventOutput>();
             }
 
             var listIdEventStatus = await _eventParticipationService.ListIdEventSubByCalendarAsync(id);
 
             if (!listIdEventStatus.Any())
             {
-                return new List<EventFullOutput>();
+                return new List<EventOutput>();
             }
 
             var listIdPart = listIdEventStatus.Keys.ToList();
             var listEventSubs = await _repoEvent.GetListAsync(x => listIdPart.Contains(x.Id));
-            var resultSubs = _mapper.Map<List<EventFullOutput>>(listEventSubs);
+            var resultSubs = _mapper.Map<List<EventOutput>>(listEventSubs);
 
             foreach(var item in resultSubs)
             {
