@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Donace_BE_Project.Models.Event.Input;
 
-public class EventUpdateInput : EventCreateInput
+public class EventUpdateInput : BaseEventInput
 {
     public Guid Id { get; set; }
 }

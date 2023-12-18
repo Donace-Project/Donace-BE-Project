@@ -52,9 +52,10 @@ public class EventController : ControllerBase
     }
 
     [HttpPost("Update")]
-    public Task UpdateAsync(EventUpdateInput input)
+    public async Task<EventDetailModel> UpdateAsync(EventUpdateInput input)
     {
-        return _service.UpdateAsync(input);
+        await _service.UpdateAsync(input);
+        return await _service.GetDetailByIdAsync(input.Id);
     }
 
     [HttpPost("Update-cover")]
