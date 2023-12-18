@@ -341,6 +341,18 @@ public class CalendarService : ICalendarService
                 dataout
             });
 
+            dataout.IsHost = false;
+            dataout.IsSub = true;
+            var listUserJoin = (await _calendarParticipationRepository.ToListAsync(x => x.IsDeleted == false &&
+                                                                                       x.IsSubcribed == true &&
+                                                                                       x.CalendarId == dataout.Id))
+                                                                                       .Select(x => x.UserId);                                   
+            foreach(var id in listUserJoin)
+            {
+                await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.Calendar}:{id}", calendarData.Sorted);
+                await _cacheService.SetDataSortedAsync($"{KeyCache.Calendar}:{calendarData.CreatorId}", new List<CalendarResponseModel> { dataout });
+            }
+
             return new ResponseModel<CalendarResponseModel>(true, ResponseCode.Donace_BE_Project_CalendarService_Success, dataout, new());
         }
         catch (Exception ex)

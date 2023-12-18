@@ -24,35 +24,18 @@ namespace Donace_BE_Project.Services
         {
             _logger = logger;
             _configuration = configuration;
-            _connectionFactory = new ConnectionFactory()
-            {
-                HostName = _configuration.GetSection("RabbitMQ").GetValue<string>("Host"),
-                Port = _configuration.GetSection("RabbitMQ").GetValue<int>("Port"),
-                UserName = _configuration.GetSection("RabbitMQ").GetValue<string>("Username"),
-                Password = _configuration.GetSection("RabbitMQ").GetValue<string>("Password"),
-            };
-            _connection = _connectionFactory.CreateConnection();
-            _channel = _connection.CreateModel();
         }
 
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var factory = new ConnectionFactory()
-            {
-                HostName = _configuration.GetSection("RabbitMQ").GetValue<string>("Host"),
-                Port = _configuration.GetSection("RabbitMQ").GetValue<int>("Port"),
-                UserName = _configuration.GetSection("RabbitMQ").GetValue<string>("Username"),
-                Password = _configuration.GetSection("RabbitMQ").GetValue<string>("Password"),
-            };
+            var factory = new ConnectionFactory() { HostName = "171.245.205.120", Port = 5672, UserName = "admin", Password = "123456789", VirtualHost = "/" };
 
-            
             using var connection = factory.CreateConnection();
 
             using var channel = connection.CreateModel();
 
-            channel.ExchangeDeclare(exchange: "topic_test", type: ExchangeType.Topic);
-            channel.QueueDeclare("request-queue", exclusive: false);
+            channel.QueueDeclare("resquest-queue", exclusive: false);
 
             var consumer = new EventingBasicConsumer(channel);
 
@@ -60,21 +43,16 @@ namespace Donace_BE_Project.Services
             {
                 Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId}");
 
-                var replyMessage = $"This is your reply: {ea.BasicProperties.CorrelationId}";
+                var replyMessage = $"This is your reply test: {ea.BasicProperties.CorrelationId}";
 
                 var body = Encoding.UTF8.GetBytes(replyMessage);
 
                 channel.BasicPublish("", ea.BasicProperties.ReplyTo, null, body);
-
-                Console.WriteLine(replyMessage);
             };
 
-            channel.BasicConsume(queue: "request-queue", autoAck: true, consumer: consumer);
+            channel.BasicConsume(queue: "resquest-queue", autoAck: true, consumer: consumer);
 
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await Task.Delay(1000, stoppingToken); // Delay để cho BackgroundService chạy liên tục
-            }
+            await Task.Delay(-1, stoppingToken);
         }
     }
 }
