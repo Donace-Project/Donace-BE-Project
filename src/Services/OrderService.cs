@@ -99,6 +99,7 @@ namespace Donace_BE_Project.Services
                 var userHost = await _ticketsRepository.FindAsync(x => x.Id == order.TicketId &&
                                                                        x.IsDeleted == false &&
                                                                        x.IsFree == false);
+
                 var eventPart = await _eventParticipationRepository.FindAsync(x => x.IsDeleted == false &&
                                                                                    x.EventId == userHost.EventId &&
                                                                                    x.UserId == order.UserId);
@@ -107,13 +108,8 @@ namespace Donace_BE_Project.Services
                 {
                     throw new FriendlyException("404", "Bạn chưa join vào event này");
                 }
-                var jsonStr = JsonConvert.SerializeObject(new
-                {
-                    idPart = eventPart.Id,
-                    status = 2,
-                    qr = string.Empty,
-                    orderId = order.Id,
-                });
+
+
                 if(userHost is null)
                 {
                     throw new FriendlyException("404", "Không tìm thấy thông tin ticket cần thanh toán");
@@ -135,7 +131,7 @@ namespace Donace_BE_Project.Services
                 pay.AddRequestData("vnp_Version", "2.1.0");
                 pay.AddRequestData("vnp_Command", "pay");
                 pay.AddRequestData("vnp_TmnCode", paymentManager.Key);
-                pay.AddRequestData("vnp_Amount", "1000000");
+                pay.AddRequestData("vnp_Amount", $"{userHost.Price * 10}");
                 pay.AddRequestData("vnp_BankCode", "");
                 pay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
                 pay.AddRequestData("vnp_CurrCode", "VND");
