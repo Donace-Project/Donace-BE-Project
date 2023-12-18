@@ -116,11 +116,16 @@ public class EventService : IEventService
 
             var result = _mapper.Map<EventEntity, EventFullOutput>(createdEvent);
 
-            // Save cache
-            //var dataCache = _mapper.Map<EventCacheModel>(createdEvent);
-            //dataCache.IsFree = ticket.IsFree;
-            //dataCache.IsCheckAppro = ticket.IsRequireApprove;
-            //dataCache.IsHost = true;
+            //Save cache
+            var dataCache = _mapper.Map<EventCacheModel>(createdEvent);
+            dataCache.IsFree = ticket.IsFree;
+            dataCache.IsCheckAppro = ticket.IsRequireApprove;
+            dataCache.IsHost = true;
+
+            await _cacheService.SetDataSortedAsync($"{KeyCache.CacheEvent}:{createdEvent.CreatorId}", new List<EventCacheModel>
+            {
+                dataCache
+            });
 
             return result;
         }   
@@ -293,6 +298,13 @@ public class EventService : IEventService
             _repoEvent.Update(foundEvent);
             await _unitOfWork.SaveChangeAsync();
 
+            var dataCache = _mapper.Map<EventCacheModel>(foundEvent);            
+
+            await _cacheService.RemoveItemDataBySortedAsync($"{KeyCache.CacheEvent}:{foundEvent.CreatorId}", foundEvent.Sorted);
+            await _cacheService.SetDataSortedAsync($"{KeyCache.CacheEvent}:{foundEvent.CreatorId}", new List<EventCacheModel>()
+            {
+                dataCache
+            });
         }
         catch(FriendlyException ex)
         {
